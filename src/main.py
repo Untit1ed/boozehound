@@ -3,8 +3,9 @@
 from services.bcl_service import BCLService
 from services.product_service import ProductService
 
+import os
 
-URL = ""
+URL = os.getenv('url')
 JSON_LOC = "data/products.json"
 CSV_LOC = "data/products.csv"
 FETCH = True
