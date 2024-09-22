@@ -2,8 +2,10 @@
 
 from services.bcl_service import BCLService
 from services.product_service import ProductService
-
+from dotenv import load_dotenv
 import os
+
+load_dotenv()
 
 URL = os.getenv('url')
 JSON_LOC = "data/products.json"

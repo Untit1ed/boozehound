@@ -12,7 +12,8 @@ setup(
        'pymysql',
        'tqdm',
        'python-dateutil',
-       'flask'
+       'flask',
+       'python-dotenv'
     ],
     # pip install -e .[dev]
     extras_require={
