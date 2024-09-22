@@ -2,14 +2,14 @@
 
 #### POSIX:
 
-	cd bcl
+	cd boozehound
 	python -m venv env
 	source ./env/bin/activate
 	pip install -e .
 
 #### WINDOWS:
 
-	cd bcl
+	cd boozehound
 	python -m venv env
 	.\env\Scripts\Activate.ps1
 	pip install -e .
