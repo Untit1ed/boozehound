@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html data-theme="dark" manifest="boozehound.appcache">
+
+<head>
+   <title>bcl</title>
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <meta name="color-scheme" content="light dark">
+   <link rel="icon" href="/favicon.ico" type="image/x-icon">
+   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.lime.min.css">
+   <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.classless.lime.min.css"> -->
+   <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.fluid.classless.lime.min.css" /> -->
+
+   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.2.3/css/flag-icons.min.css" />
+   <link href='https://fonts.googleapis.com/css?family=Pacifico' rel='stylesheet'>
+
+   <script src="https://cdn.jsdelivr.net/npm/vue@3"></script>
+   <link rel="stylesheet" href="/static/style.css" />
+</head>
+
+<body>
+   <header class="container">
+      <a href="/">
+         <img src="/static/img/bh.png" />
+      </a>
+      <hgroup>
+         <h1>BoozeHound</h1>
+         <p>Sniffing Out the Best Deals on Your Favorite Spirits!</p>
+      </hgroup>
+   </header>
+   <main id="app" class="container">
+      <article v-if="loading" aria-busy="true"></article>
+      <div class="grid" v-else>
+         <item-component v-for="(category, index) in categories" :key="index" :item="category" :index="index"
+            :getCategoryImage="getCategoryImage" />
+      </div>
+   </main>
+   <footer class="container">
+      <nav>
+         <ul>
+            <li><strong>BoozeHound</strong></li>
+         </ul>
+         <ul>
+            <li><small>Site design / logo © 2024 Eclisoft Inc.</small></li>
+         </ul>
+         <ul>
+            <li><a class="secondary" href="#">About</a></li>
+            <li><a class="secondary" href="#">Services</a></li>
+            <li><a class="secondary" href="#">Products</a></li>
+         </ul>
+      </nav>
+   </footer>
+   <script src="/static/main.js"></script>
+</body>
+
+</html>

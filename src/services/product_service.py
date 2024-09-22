@@ -1,0 +1,65 @@
+
+import json
+from typing import List
+
+from db_helper import DbHelper
+
+from models.product import Product
+from repositories.category_repository import CategoryRepository
+from repositories.country_repository import CountryRepository
+from repositories.price_history_repository import PriceHistoryRepository
+from repositories.product_repository import ProductRepository
+
+
+class ProductService:
+    def __init__(self, load_repos:bool = False) -> None:
+        self.db_config = {
+            'host': 'localhost',
+            'user': 'cron_job',
+            'password': 'cron_job123$',
+            'database': 'bcl',
+        }
+
+        if load_repos:
+            self.load_repos()
+
+        self.products:List[Product] = []
+
+    def load_repos(self) -> None:
+        db_helper = DbHelper(self.db_config)
+        self.country_repo = CountryRepository(db_helper)
+        self.category_repo = CategoryRepository(db_helper)
+        self.price_history_repo = PriceHistoryRepository(db_helper)
+
+        self.product_repo = ProductRepository(db_helper, self.category_repo, self.country_repo, self.price_history_repo)
+
+        self.products = list(self.product_repo.products_map.keys())
+
+
+    def load_products(self, filename: str) -> None:
+        with open(filename, 'r') as file:
+            json_data = json.load(file)
+
+        hits = json_data.get("hits", {}).get("hits", [])
+
+        products = [Product(**hit.get("_source", {})) for hit in hits]
+
+        # Sort products by the custom metric
+        self.products = sorted(products, key=lambda p: p.combined_score(), reverse=True)
+
+    def persist_products(self):
+        for country in {product.country for product in self.products if product.country is not None}:
+            self.country_repo.get_or_add_country(country)
+
+        categories = {(product.category, product.subCategory, product.class_name) for product in self.products}
+        for category, sub_category, class_name in categories:
+            if category:
+                self.category_repo.get_or_add_category(
+                    class_name,
+                    sub_category,
+                    category
+                )
+
+        for product in self.products:
+            self.product_repo.get_or_add_product(product)
+            self.price_history_repo.get_or_add_price_history(product.price_history)

@@ -1,0 +1,97 @@
+body {
+   height: 100%;
+   overflow-y: scroll;
+}
+
+:root {
+   --pico-font-size: 100%;
+   --pico-typography-spacing-vertical: 1.5rem;
+   --pico-form-element-spacing-vertical: 1rem;
+   --pico-form-element-spacing-horizontal: 1.25rem;
+}
+
+h1,
+h2,
+h3,
+h4 {
+   --pico-font-family: Pacifico, cursive;
+   --pico-font-weight: 400;
+   --pico-typography-spacing-vertical: 0.5rem;
+}
+
+button {
+   --pico-typography-spacing-vertical: .05rem;
+   --pico-form-element-spacing-vertical: .1rem;
+}
+
+header {
+
+   display: flex;
+   align-items: center;
+   gap: 1rem;
+
+   a {
+      min-width: 142px;
+      min-height: 100px;
+      height: auto;
+   }
+
+   hgroup {
+      margin: 0;
+   }
+
+   a {
+      img {
+         height: 100px;
+      }
+   }
+}
+
+.item {
+   margin-bottom: 5px;
+   border-radius: 10px;
+   overflow: hidden;
+
+   .price {
+      font-weight: bold;
+
+      s {
+         font-weight: normal;
+         color: rgb(231, 86, 14);
+      }
+   }
+
+   small {
+      color: var(--pico-muted-color);
+   }
+
+   .image-container {
+      position: relative;
+      display: flex;
+      overflow: hidden;
+      justify-content: center;
+      /* Center horizontally */
+      align-items: center;
+      /* Center vertically */
+      background-color: white;
+
+      img {
+         max-height: 100px;
+         transition: transform 0.3s ease-in-out;
+      }
+
+      .fis {
+         position: absolute;
+         top: 5px;
+         right: 5px;
+      }
+   }
+}
+
+.grid.item:hover .image-container img {
+   transform: scale(1.25);
+}
+
+.grid.item:hover {
+   background-color: rgba(102, 102, 102, 0.1);
+}
