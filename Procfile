@@ -1,1 +1,1 @@
-web: python boozehound/server.py
+web: python src/server.py
