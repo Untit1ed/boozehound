@@ -43,8 +43,8 @@ def get_data():
     return jsonify(data)
 
 
-@app.route('reload', methods=['POST'])
-def get_data():
+@app.route('/reload', methods=['POST'])
+def reload():
     bcl = BCLService()
     bcl.download_json(BCL_URL, JSON_LOC)
 
