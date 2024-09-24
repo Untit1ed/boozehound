@@ -1,7 +1,7 @@
 
 
 import os
-
+import sys
 from dotenv import load_dotenv
 
 from services.bcl_service import BCLService
@@ -18,7 +18,7 @@ BLS_URL = os.getenv('BSL_URL')
 DB_URL = os.getenv('DB_URL')
 JSON_LOC = "data/products.json"
 CSV_LOC = "data/products.csv"
-FETCH = True
+FETCH = True if len(sys.argv) == 2 and sys.argv[1] == 'fetch' else False
 
 if __name__ == '__main__':
    bcl = None
