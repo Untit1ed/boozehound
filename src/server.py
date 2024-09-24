@@ -4,14 +4,13 @@ from flask import Flask, jsonify
 
 from services.product_service import ProductService
 
-# Load .env file only if running locally
-if os.getenv('ENV') == 'local':
-    load_dotenv()
+load_dotenv()
 
 db_url = os.environ.get('DB_URL')
 print('WEB STARTING')
 print(f'{db_url}')
 product_service: ProductService = ProductService(db_url)
+product_service.load_repos()
 
 app: Flask = Flask(__name__,
                    static_folder='web/static',
@@ -40,9 +39,8 @@ def get_data():
     return jsonify(data)
 
 if __name__ == '__main__':
-    product_service.load_repos()
     #product_service.load_products(JSON_LOC)
     if os.getenv('ENV') == 'local':
         app.run(host='0.0.0.0', port=80, debug=True, use_reloader=False)
     else:
-        app.run(port=8000)
+        app.run()
