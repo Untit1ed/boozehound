@@ -87,21 +87,39 @@ FROM products;"""
             return self.products_map[product]
 
         # Insert category into the database
-        insert_query = """
-            INSERT INTO products (
-                sku, name, category_id, country_code, description, volume, alcohol, upc, unit_size, bcl_image_url,
-                sub_category_id, class_id
-            )
-            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-            ON DUPLICATE KEY UPDATE
-                id = LAST_INSERT_ID(id),
-                name = VALUES(name),
-                upc = VALUES(upc),
-                category_id = VALUES(category_id),
-                sub_category_id = VALUES(sub_category_id),
-                class_id = VALUES(class_id),
-                date_updated = now()
-        """
+        if self.db_helper.is_mysql:
+            insert_query = """
+                INSERT INTO products (
+                    sku, name, category_id, country_code, description, volume, alcohol, upc, unit_size, bcl_image_url,
+                    sub_category_id, class_id
+                )
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                ON DUPLICATE KEY UPDATE
+                    id = LAST_INSERT_ID(id),
+                    name = VALUES(name),
+                    upc = VALUES(upc),
+                    category_id = VALUES(category_id),
+                    sub_category_id = VALUES(sub_category_id),
+                    class_id = VALUES(class_id),
+                    date_updated = now()
+            """
+        else:
+            insert_query = """
+                INSERT INTO products (
+                    sku, name, category_id, country_code, description, volume, alcohol, upc, unit_size, bcl_image_url,
+                    sub_category_id, class_id
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (sku)
+                DO UPDATE SET
+                    name = EXCLUDED.name,
+                    upc = EXCLUDED.upc,
+                    category_id = EXCLUDED.category_id,
+                    sub_category_id = EXCLUDED.sub_category_id,
+                    class_id = EXCLUDED.class_id,
+                    date_updated = NOW();
+            """
+
         new_product_id = self.db_helper.insert_query(
             insert_query,
             (

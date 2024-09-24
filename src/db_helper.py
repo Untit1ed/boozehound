@@ -12,6 +12,7 @@ class DbHelper:
         :param config: A dictionary containing database connection parameters.
         """
         self.config = config
+        self.is_mysql = True
 
     def connect(self) -> pymysql.connections.Connection:
         """
@@ -22,6 +23,7 @@ class DbHelper:
         if 'localhost' in self.config['host']:
             return pymysql.connect(**self.config)
         else:
+            self.is_mysql = False
             return psycopg2.connect(**self.config)
 
 
