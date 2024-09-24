@@ -1,5 +1,4 @@
 import os
-import logging
 from dotenv import load_dotenv
 from flask import Flask, jsonify
 
@@ -46,6 +45,4 @@ if __name__ == '__main__':
     if os.getenv('ENV') == 'local':
         app.run(host='0.0.0.0', port=80, debug=True, use_reloader=False)
     else:
-        # Set the logging level to WARNING
-        logging.basicConfig(level=logging.WARNING)
         app.run()

@@ -14,7 +14,8 @@ setup(
        'tqdm',
        'python-dateutil',
        'flask',
-       'python-dotenv'
+       'python-dotenv',
+       'gunicorn'
     ],
     # pip install -e .[dev]
     extras_require={
