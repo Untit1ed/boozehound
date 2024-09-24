@@ -1,7 +1,7 @@
 import os
-
+import logging
 from dotenv import load_dotenv
-from flask import Flask, jsonify, logging
+from flask import Flask, jsonify
 
 from services.product_service import ProductService
 
