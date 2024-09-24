@@ -8,8 +8,7 @@ from services.bcl_service import BCLService
 from services.product_service import ProductService
 
 # Load .env file only if running locally
-if os.getenv('ENV') == 'local':
-    load_dotenv()
+load_dotenv()
 
 BCL_URL = os.getenv('BCL_URL')
 BLS_URL = os.getenv('BSL_URL')

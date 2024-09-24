@@ -2,14 +2,18 @@ import os
 from dotenv import load_dotenv
 from flask import Flask, jsonify
 
+from services.bcl_service import BCLService
 from services.product_service import ProductService
 
 load_dotenv()
 
-db_url = os.environ.get('DB_URL')
-print('WEB STARTING')
-print(f'{db_url}')
-product_service: ProductService = ProductService(db_url)
+DB_URL = os.environ.get('DB_URL')
+BCL_URL = os.getenv('BCL_URL')
+JSON_LOC = "data/products.json"
+
+print(f'WEB STARTING {__name__}')
+print(f'{DB_URL}')
+product_service: ProductService = ProductService(DB_URL)
 product_service.load_repos()
 
 app: Flask = Flask(__name__,
@@ -37,6 +41,16 @@ def get_data():
         'products': [x.to_json_model() for x in product_service.products],
     }
     return jsonify(data)
+
+
+@app.route('reload', methods=['POST'])
+def get_data():
+    bcl = BCLService()
+    bcl.download_json(BCL_URL, JSON_LOC)
+
+    product_service.load_products(JSON_LOC)
+    product_service.persist_products()
+    return jsonify("OK")
 
 if __name__ == '__main__':
     #product_service.load_products(JSON_LOC)

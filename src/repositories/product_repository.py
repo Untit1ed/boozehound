@@ -63,7 +63,7 @@ FROM products;"""
                 image=bcl_image_url,
                 subCategory=sub_category,
                 class_name=class_name,
-                price_history=max(history, key=lambda x: x.last_updated)
+                price_history=max(history, key=lambda x: x.last_updated) if history else None
             )
 
             product_dict[product] = id
