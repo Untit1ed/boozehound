@@ -48,4 +48,4 @@ if __name__ == '__main__':
     else:
         # Set the logging level to WARNING
         logging.basicConfig(level=logging.WARNING)
-        app.run(port=80, debug=False)
+        app.run()
