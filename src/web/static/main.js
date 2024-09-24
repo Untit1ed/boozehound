@@ -66,7 +66,7 @@ const app = Vue.createApp({
       console.log("Setting categories...", this.products);
       if (this.products.length > 0) {
          console.log("Setting categories...");
-         this.categories = this.groupAndSort(this.products, 'category', 'combined_score', 25);
+         this.categories = this.groupAndSort(this.products, 'category', 'combined_score', 100);
       }
    },
    methods: {
@@ -124,8 +124,9 @@ const app = Vue.createApp({
          this.loading = false;
       },
       groupAndSort(data, groupByField, sortByField, topN) {
-         // Step 1: Group by the specified field
+         // Step 1: Filter data based on combined_score
          const filteredData = data.filter((item) => item.combined_score >= 1000);
+         // Step 2: Group by the specified field
          const groupedData = filteredData.reduce((acc, item) => {
             const key = item[groupByField];
             if (!acc[key]) {
@@ -135,17 +136,26 @@ const app = Vue.createApp({
             return acc;
          }, {});
 
-         // Step 2: Sort each group by the specified field and take top N results
+         // Step 3: Sort each group by the specified field and take top N results
          const result = Object.keys(groupedData).map(key => {
-            const sortedGroup = groupedData[key].sort((a, b) => b[sortByField] - a[sortByField]);//.slice(0, topN);
+            const sortedGroup = groupedData[key]
+               .sort((a, b) => b[sortByField] - a[sortByField])
+               .slice(0, topN);
 
             return {
                [groupByField]: key,
                items: sortedGroup
-            }
+            };
          });
 
-         return result;
+         // Step 4: Sort the final results by the highest sortByField value in each group
+         const sortedResult = result.sort((a, b) => {
+            const maxA = Math.max(...a.items.map(item => item[sortByField]));
+            const maxB = Math.max(...b.items.map(item => item[sortByField]));
+            return maxB - maxA; // Sort in descending order
+         });
+
+         return sortedResult;
       },
    }
 });

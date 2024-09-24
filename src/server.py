@@ -1,3 +1,4 @@
+import datetime
 import os
 import threading
 from dotenv import load_dotenv
@@ -43,6 +44,18 @@ def get_data():
     }
     return jsonify(data)
 
+
+def run_daily_task():
+    """Schedule the daily task."""
+    while True:
+        # Calculate the time until the next run (next day)
+        now = datetime.now()
+        next_run = now.replace(hour=0, minute=0, second=0, microsecond=0) + datetime.timedelta(days=1)
+        wait_time = (next_run - now).total_seconds()
+
+        # Wait until the next run
+        datetime.time.sleep(wait_time)
+        download_task()
 
 def download_task():
     bcl = BCLService()
