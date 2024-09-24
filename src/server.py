@@ -43,5 +43,7 @@ def get_data():
 if __name__ == '__main__':
     product_service.load_repos()
     #product_service.load_products(JSON_LOC)
-
-    app.run(host='0.0.0.0', port=80, debug=True, use_reloader=False)
+    if os.getenv('ENV') == 'local':
+        app.run(host='0.0.0.0', port=80, debug=True, use_reloader=False)
+    else:
+        app.run()
