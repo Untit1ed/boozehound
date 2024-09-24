@@ -8,6 +8,7 @@ from models.price_history import PriceHistory
 
 BCL_PRODUCT_URL = "https://www.bcliquorstores.com/product/"
 
+
 class Product(BaseModel):
     upc: Optional[str] = None
     sku: Optional[str] = None
@@ -70,6 +71,9 @@ class Product(BaseModel):
         # Populate UPC
         values = cls.populate_upc_from_list_or_sku(values)
 
+        # Fix image
+        values = cls.fix_image(values)
+
         # Populate Country object
         values = cls.combine_country_fields(values)
 
@@ -94,6 +98,14 @@ class Product(BaseModel):
                 values['upc'] = values['upc'][0]
             else:
                 values['upc'] = values['sku']
+
+        return values
+
+    @classmethod
+    def fix_image(cls: Type['Product'], values: dict) -> dict:
+        # Extract 'b' from the nested structure if it exists
+        if 'image' in values and values['image']:
+            values['image'] = values['image'].replace('http://', 'https://', 1).replace('.jpeg', '.jpg', 1)
 
         return values
 

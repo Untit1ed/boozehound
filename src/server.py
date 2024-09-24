@@ -1,4 +1,5 @@
 import os
+import threading
 from dotenv import load_dotenv
 from flask import Flask, jsonify
 
@@ -43,14 +44,18 @@ def get_data():
     return jsonify(data)
 
 
-@app.route('/reload', methods=['POST'])
-def reload():
+def download_task():
     bcl = BCLService()
     bcl.download_json(BCL_URL, JSON_LOC)
 
     product_service.load_products(JSON_LOC)
     product_service.persist_products()
-    return jsonify("OK")
+
+@app.route('/reload', methods=['POST'])
+def reload():
+    thread = threading.Thread(target=download_task)
+    thread.start()  # Start the background task
+    return jsonify({"message": "Reload task started!"}), 202
 
 if __name__ == '__main__':
     #product_service.load_products(JSON_LOC)
