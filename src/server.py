@@ -1,15 +1,15 @@
 import os
 
 from dotenv import load_dotenv
-from flask import Flask, jsonify, render_template
-from main import JSON_LOC
+from flask import Flask, jsonify
 
 from services.product_service import ProductService
 
 load_dotenv()
 
 db_url = os.getenv('DB_URL')
-
+print('WEB STARTING')
+print(f'{db_url}')
 product_service: ProductService = ProductService(db_url)
 
 app: Flask = Flask(__name__,
