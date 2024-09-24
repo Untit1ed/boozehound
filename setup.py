@@ -10,6 +10,7 @@ setup(
        'requests',
        'pydantic',
        'pymysql',
+       'psycopg2',
        'tqdm',
        'python-dateutil',
        'flask',

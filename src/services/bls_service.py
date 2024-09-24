@@ -8,12 +8,30 @@ from tqdm import tqdm
 from models.product import Product
 
 
-class BCLService:
+class BLSService:
     def __init__(self) -> None:
         pass
 
     def download_json(self, url: str, output_path: str):
-        response = requests.get(url, stream=True)
+
+        # Define the JSON payload
+        payload = {
+            "query": """
+            query($storeId: String!) {
+                productTags(storeId: $storeId) {
+                    id
+                    parent
+                    slug
+                    name
+                }
+            }
+            """,
+            "variables": {
+                "storeId": "BR"
+            }
+        }
+
+        response = requests.post(url, json=payload, stream=True)
         total_size = int(response.headers.get('content-length', 0))
         block_size = 1024  # 1 Kilobyte
         progress_bar = tqdm(total=total_size, unit='iB', unit_scale=True)

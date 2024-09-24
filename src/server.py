@@ -1,10 +1,17 @@
-import requests
-from flask import Flask, jsonify, render_template
+import os
 
+from dotenv import load_dotenv
+from flask import Flask, jsonify, render_template
 from main import JSON_LOC
+
 from services.product_service import ProductService
 
-product_service: ProductService = ProductService()
+load_dotenv()
+
+db_url = os.getenv('DB_URL')
+
+product_service: ProductService = ProductService(db_url)
+
 app: Flask = Flask(__name__,
                    static_folder='web/static',
                    template_folder='web/templates')

@@ -12,18 +12,33 @@ from repositories.product_repository import ProductRepository
 
 
 class ProductService:
-    def __init__(self, load_repos:bool = False) -> None:
-        self.db_config = {
-            'host': 'localhost',
-            'user': 'cron_job',
-            'password': 'cron_job123$',
-            'database': 'bcl',
-        }
+    def __init__(self, db_url: str, load_repos: bool = False) -> None:
+        if db_url == 'localhost':
+            self.db_config = {
+                'host': db_url,
+                'user': 'cron_job',
+                'password': 'cron_job123$',
+                'database': 'bcl',
+            }
+        elif db_url == 'untit1ed.mysql.pythonanywhere-services.com':
+            self.db_config = {
+                'host': db_url,
+                'user': 'untit1ed',
+                'password': 'cron_job123$',
+                'database': 'bcl',
+            }
+        else:
+            self.db_config = {
+                'host': db_url,
+                'user': 'cron_job',
+                'password': 'Jz2cKk1tRiEj',
+                'dbname': 'bcl',
+            }
 
         if load_repos:
             self.load_repos()
 
-        self.products:List[Product] = []
+        self.products: List[Product] = []
 
     def load_repos(self) -> None:
         db_helper = DbHelper(self.db_config)
@@ -34,7 +49,6 @@ class ProductService:
         self.product_repo = ProductRepository(db_helper, self.category_repo, self.country_repo, self.price_history_repo)
 
         self.products = list(self.product_repo.products_map.keys())
-
 
     def load_products(self, filename: str) -> None:
         with open(filename, 'r') as file:

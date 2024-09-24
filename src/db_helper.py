@@ -1,6 +1,7 @@
 from typing import Any, Optional, Tuple
 
 import pymysql
+import psycopg2
 
 
 class DbHelper:
@@ -18,7 +19,11 @@ class DbHelper:
 
         :return: A pymysql database connection object.
         """
-        return pymysql.connect(**self.config)
+        if 'localhost' in self.config['host']:
+            return pymysql.connect(**self.config)
+        else:
+            return psycopg2.connect(**self.config)
+
 
     def execute_query(self, query: str, params: Optional[Tuple] = None, fetch_one: bool = False) -> Any:
         """

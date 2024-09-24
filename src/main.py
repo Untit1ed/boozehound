@@ -1,24 +1,30 @@
 
 
+import os
+
+from dotenv import load_dotenv
+
 from services.bcl_service import BCLService
 from services.product_service import ProductService
-from dotenv import load_dotenv
-import os
 
 load_dotenv()
 
-URL = os.getenv('url')
+BCL_URL = os.getenv('BCL_URL')
+BLS_URL = os.getenv('BSL_URL')
+
+
+DB_URL = os.getenv('DB_URL')
 JSON_LOC = "data/products.json"
 CSV_LOC = "data/products.csv"
 FETCH = True
 
 if __name__ == '__main__':
    bcl = None
-   product_service = ProductService(True)
+   product_service = ProductService(DB_URL, True)
 
    if FETCH:
       bcl = BCLService()
-      bcl.download_json(URL, JSON_LOC)
+      bcl.download_json(BCL_URL, JSON_LOC)
 
    product_service.load_products(JSON_LOC)
    product_service.persist_products()
