@@ -5,9 +5,11 @@ from flask import Flask, jsonify
 
 from services.product_service import ProductService
 
-load_dotenv()
+# Load .env file only if running locally
+if os.getenv('ENV') == 'local':
+    load_dotenv()
 
-db_url = os.getenv('DB_URL')
+db_url = os.environ.get('DB_URL')
 print('WEB STARTING')
 print(f'{db_url}')
 product_service: ProductService = ProductService(db_url)
