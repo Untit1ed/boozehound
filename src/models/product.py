@@ -142,11 +142,11 @@ class Product(BaseModel):
         frozen = True
 
     def __hash__(self):
-        return hash((self.name, self.upc, self.sku))
+        return hash((self.name, self.sku))
 
     def __eq__(self, other):
         if isinstance(other, Product):
-            return self.upc == other.upc and self.sku == other.sku
+            return self.name == other.name and self.sku == other.sku # and self.upc == other.upc
         return False
 
     # sort

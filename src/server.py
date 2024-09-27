@@ -54,8 +54,11 @@ def run_daily_task():
         wait_time = (next_run - now).total_seconds()
 
         # Wait until the next run
+        print(f'Waiting `{wait_time}`...')
         datetime.time.sleep(wait_time)
+        print('Reloading products...')
         download_task()
+        print('Products reloaded...')
 
 def download_task():
     bcl = BCLService()
