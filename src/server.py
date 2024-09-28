@@ -74,6 +74,8 @@ def reload():
     return jsonify({"message": "Reload task started!"}), 202
 
 if __name__ == '__main__':
+    run_daily_task()
+
     #product_service.load_products(JSON_LOC)
     if os.getenv('ENV') == 'local':
         app.run(host='0.0.0.0', port=80, debug=True, use_reloader=False)
