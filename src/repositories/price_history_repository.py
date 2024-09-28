@@ -65,11 +65,8 @@ FROM price_history;"""
         """
 
         # Check if the history is already in memory
-        if history.upc in self.history_map:
-            if history in self.history_map[history.upc]:
-                return history.upc
-            else:
-                print(f"{(history.upc)} history was found in dict, but was different.")
+        if history.upc in self.history_map and history in self.history_map[history.upc]:
+            return history.upc
 
         # Insert category into the database
         insert_query = """

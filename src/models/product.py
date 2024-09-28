@@ -32,6 +32,9 @@ class Product(BaseModel):
     def get_numeric_current_price(self) -> float:
         return self.get_float(self.price_history.current_price)
 
+    def get_numeric_regular_price(self) -> float:
+        return self.get_float(self.price_history.regular_price)
+
     def get_float(self, value) -> float:
         try:
             return float(value) if value else 0
@@ -134,7 +137,7 @@ class Product(BaseModel):
         data['volume'] = self.get_numeric_volume()
         data['unit_size'] = self.get_numeric_unit_size()
         data['sale_price'] = self.get_numeric_current_price()
-        data['price'] = self.price_history.regular_price
+        data['price'] = self.get_numeric_regular_price()
         data['url'] = self.bcl_url()
         return data;
 
