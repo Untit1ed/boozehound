@@ -4,7 +4,7 @@ body {
 }
 
 :root {
-   --pico-font-size: 85%;
+   --pico-font-size: 90%;
    --pico-typography-spacing-vertical: 1.5rem;
    --pico-form-element-spacing-vertical: 1rem;
    --pico-form-element-spacing-horizontal: 1.25rem;
@@ -72,6 +72,7 @@ header {
    }
 
    .category {
+      font-size: small;
       a {
          display: block;
       }

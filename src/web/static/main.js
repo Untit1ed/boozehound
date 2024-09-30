@@ -24,25 +24,25 @@ const ItemComponent = {
                <div class="product-details">
                   <hgroup>
                      <p class="price" v-if="product.price.sale_price !== product.price.price">
-                        <mark>
-                           <small class="crossed">\${{ product.price.price }}</small>
-                           \${{ product.price.sale_price }} <small>(\${{ (product.price.price - product.price.sale_price).toFixed(2) }} OFF)</small>
-                        </mark><br/>
-                       <small>(until {{printDate(product.price.promotion_end_date)}})</small>
+                       <span class="crossed">\${{ product.price.price }}</span>
+                       <mark>\${{ product.price.sale_price }}
+                       </mark><br/>
+                       <small>\${{ (product.price.price - product.price.sale_price).toFixed(2) }} OFF (until {{printDate(product.price.promotion_end_date)}})</small>
                      </p>
                      <p class="price" v-else>\${{ product.price.price }}</p>
                      <p>
                         <a :href="product.url" target="blank">{{ product.name }}</a>
                      </p>
+                  </hgroup>
                      <p class="category">
                         <a v-for="(category, i) in product.full_category" :key="i" class="contrast" :href="'#' + category.id">{{ category.description }}</a>
                      </p>
-                  </hgroup>
+
                   <div class="math">
-                     <span></span>
-                     <small class="volume">
-                        <span>{{ product.alcohol }}%</span>: <span>{{product.volume}}L</span> <span v-if="product.unit_size > 1">x {{product.unit_size}}</span>
+                     <small>
+                        <span>{{product.volume}}L</span> <span v-if="product.unit_size > 1">x {{product.unit_size}}</span>
                      </small>
+                     <small>alc. {{ product.alcohol }}% vol.</small>
                   </div>
                   <div class="math">
                      <small>\${{(product.ppml*100).toFixed(2)}}/100ml</small>
