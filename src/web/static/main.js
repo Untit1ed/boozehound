@@ -8,32 +8,44 @@ categoryImageMap = {
 
 // Define your Vue component
 const ItemComponent = {
-   props: ['item', 'index', 'getCategoryImage'],
+   props: ['item', 'index'],
    template: `
         <div class="category">
           <h2>{{ item.category }}</h2>
           <div class="grid item" v-for="(product, index) in item.items" :key="index">
                <div class="image-container">
-                  <img :src="product.image" @error="handleImageError($event, product.category)" />
+                  <img
+                     :src="getCurrentImage(product)"
+                     @mouseover="changeImage(product, true)"
+                     @mouseleave="changeImage(product, false)"
+                     @error="handleImageError($event, product.category)" />
                   <span :class="'fi fi-' + product.country.toLowerCase()" class="fis"></span>
                </div>
                <div class="product-details">
                   <hgroup>
-                     <p class="price">
-                        <span v-if="product.sale_price !== product.price">
-                          <s>\${{ product.price }}</s>
-                          <mark>\${{ product.sale_price }}</mark>
-                        </span>
-                        <b v-else>\${{ product.price }}</b>
+                     <p class="price" v-if="product.price.sale_price !== product.price.price">
+                        <mark>
+                           <small class="crossed">\${{ product.price.price }}</small>
+                           \${{ product.price.sale_price }} <small>(\${{ (product.price.price - product.price.sale_price).toFixed(2) }} OFF)</small>
+                        </mark><br/>
+                       <small>(until {{printDate(product.price.promotion_end_date)}})</small>
                      </p>
+                     <p class="price" v-else>\${{ product.price.price }}</p>
                      <p>
                         <a :href="product.url" target="blank">{{ product.name }}</a>
                      </p>
+                     <p class="category">
+                        <a v-for="(category, i) in product.full_category" :key="i" class="contrast" :href="'#' + category.id">{{ category.description }}</a>
+                     </p>
                   </hgroup>
-                  <div>
-                     <span>{{product.alcohol}}%</span>: <span>{{product.volume}}L</span> <span v-if="product.unit_size > 1">x {{product.unit_size}}</span>
+                  <div class="math">
+                     <span></span>
+                     <small class="volume">
+                        <span>{{ product.alcohol }}%</span>: <span>{{product.volume}}L</span> <span v-if="product.unit_size > 1">x {{product.unit_size}}</span>
+                     </small>
                   </div>
-                  <div>
+                  <div class="math">
+                     <small>\${{(product.ppml*100).toFixed(2)}}/100ml</small>
                      <small>Boozecore: {{product.combined_score.toLocaleString()}}</small>
                   </div>
                </div>
@@ -44,7 +56,19 @@ const ItemComponent = {
       handleImageError(event, category) {
          console.log(category);
          event.target.src = categoryImageMap[category] || categoryImageMap['Liquor'];
-      }
+      },
+      getCurrentImage(product) {
+         return product.isHovered ? product.image.replace('height400', 'height800') : product.image;
+      },
+      changeImage(product, isHover) {
+         product.isHovered = isHover;
+      },
+      printDate(dateString) {
+         const options = { month: 'short', day: '2-digit' };
+         const formatter = new Intl.DateTimeFormat('en-US', options);
+
+         return formatter.format(new Date(dateString));
+      },
    }
 
 };
@@ -63,11 +87,11 @@ const app = Vue.createApp({
    },
    async mounted() {
       await this.loadData();
-      console.log("Setting categories...", this.products);
-      if (this.products.length > 0) {
-         console.log("Setting categories...");
-         this.categories = this.groupAndSort(this.products, 'category', 'combined_score', 100);
-      }
+
+      if (!this.products.length)
+         return;
+
+      this.categories = this.groupAndSort(this.products, 'category', 'combined_score', 100);
    },
    methods: {
       async loadData() {

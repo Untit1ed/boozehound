@@ -4,7 +4,7 @@ body {
 }
 
 :root {
-   --pico-font-size: 100%;
+   --pico-font-size: 85%;
    --pico-typography-spacing-vertical: 1.5rem;
    --pico-form-element-spacing-vertical: 1rem;
    --pico-form-element-spacing-horizontal: 1.25rem;
@@ -53,16 +53,28 @@ header {
    overflow: hidden;
 
    .price {
-      font-weight: bold;
-
-      s {
-         font-weight: normal;
+      .crossed {
+         text-decoration: line-through;
          color: rgb(231, 86, 14);
+      }
+
+      mark {
+         font-weight: bold;
+
+         small {
+            font-weight: normal;
+         }
       }
    }
 
    small {
       color: var(--pico-muted-color);
+   }
+
+   .category {
+      a {
+         display: block;
+      }
    }
 
    .image-container {
@@ -86,12 +98,44 @@ header {
          right: 5px;
       }
    }
+
+   .math {
+      font-size: small;
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 5px;
+
+      small:nth-child(1) {
+         justify-self: start;
+      }
+
+      small:nth-child(2) {
+         justify-self: end;
+      }
+
+      small {
+         font-size: 80%;
+         display: block;
+      }
+   }
 }
 
-.grid.item:hover .image-container img {
-   transform: scale(1.25);
+.image-container img::after {
+   content: attr(data-src);
 }
 
 .grid.item:hover {
    background-color: rgba(102, 102, 102, 0.1);
+
+   .image-container img {
+      transform: scale(1.25);
+   }
+
+   .image-container img {}
+
+
+
+   .image-container {
+      background-image: attr(data-src url);
+   }
 }

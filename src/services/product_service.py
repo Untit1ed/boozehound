@@ -35,10 +35,11 @@ class ProductService:
                 'dbname': 'bcl',
             }
 
-        if load_repos:
-            self.load_repos()
 
         self.products: List[Product] = []
+
+        if load_repos:
+            self.load_repos()
 
     def load_repos(self) -> None:
         db_helper = DbHelper(self.db_config)
@@ -65,12 +66,12 @@ class ProductService:
         for country in {product.country for product in self.products if product.country is not None}:
             self.country_repo.get_or_add_country(country)
 
-        categories = {(product.category, product.subCategory, product.class_name) for product in self.products}
-        for category, sub_category, class_name in categories:
+        categories = {(product.category, product.subCategory, product.subSubCategory) for product in self.products}
+        for category, subCategory, subSubCategory in categories:
             if category:
                 self.category_repo.get_or_add_category(
-                    class_name,
-                    sub_category,
+                    subSubCategory,
+                    subCategory,
                     category
                 )
 

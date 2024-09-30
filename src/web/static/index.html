@@ -30,8 +30,7 @@
    <main id="app" class="container">
       <article v-if="loading" aria-busy="true"></article>
       <div class="grid" v-else>
-         <item-component v-for="(category, index) in categories" :key="index" :item="category" :index="index"
-            :getCategoryImage="getCategoryImage" />
+         <item-component v-for="(category, index) in categories" :key="index" :item="category" :index="index" />
       </div>
    </main>
    <footer class="container">

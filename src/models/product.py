@@ -1,10 +1,11 @@
-from typing import Any, Optional, Type, Union
+from typing import Any, List, Optional, Type, Union
 
 from pydantic import BaseModel, Field, model_validator
 
 from models.category import Category
 from models.country import Country
 from models.price_history import PriceHistory
+from utils.type_utils import get_float
 
 BCL_PRODUCT_URL = "https://www.bcliquorstores.com/product/"
 
@@ -23,23 +24,17 @@ class Product(BaseModel):
     country: Optional[Country]
     category: Optional[Category]
     subCategory: Optional[Category]
-    class_name: Optional[Category] = Field(None, alias='class')
+    subSubCategory: Optional[Category]
     price_history: Optional[PriceHistory] = None
 
     def get_numeric_volume(self) -> float:
-        return self.get_float(self.volume)
+        return get_float(self.volume)
 
     def get_numeric_current_price(self) -> float:
-        return self.get_float(self.price_history.current_price)
+        return get_float(self.price_history.current_price if self.price_history else 0)
 
     def get_numeric_regular_price(self) -> float:
-        return self.get_float(self.price_history.regular_price)
-
-    def get_float(self, value) -> float:
-        try:
-            return float(value) if value else 0
-        except ValueError:
-            return 0
+        return get_float(self.price_history.regular_price if self.price_history else 0)
 
     def get_numeric_unit_size(self) -> int:
         return self.unitSize if self.unitSize else 1
@@ -59,7 +54,8 @@ class Product(BaseModel):
     def combined_score(self) -> float:
         # Inverse of price per milliliter to prioritize cheaper products and add alcohol score
         price_per_ml = self.price_per_milliliter()
-        return (1 / price_per_ml) * (self.alcohol_score() + 1)  # Add 1 to avoid division by zero issues
+        # Add 1 to avoid division by zero issues
+        return (1 / price_per_ml if price_per_ml > 0 else 1) * (self.alcohol_score() + 1)
 
     def bcl_url(self) -> str:
         return f"{BCL_PRODUCT_URL}{self.sku}"
@@ -67,6 +63,9 @@ class Product(BaseModel):
     def combined_category(self) -> str:
         # Combine productType and productCategory
         return self.productType if self.productType else self.category.description
+
+    def full_category(self) -> List[Category]:
+        return [self.category, self.subCategory, self.subSubCategory]
 
     @model_validator(mode='before')
     @classmethod
@@ -80,6 +79,9 @@ class Product(BaseModel):
         # Populate Country object
         values = cls.combine_country_fields(values)
 
+        # populate SubSubCategory
+        values = cls.combine_sub_sub_category(values)
+
         # Populate PriceHistory object
         values = cls.combine_history_fields(values)
 
@@ -91,6 +93,13 @@ class Product(BaseModel):
         country_code = values.pop('countryCode', None)
         if country_name or country_code:
             values['country'] = Country(name=country_name, code=country_code)
+        return values
+
+    @classmethod
+    def combine_sub_sub_category(cls: Type['Product'], values: dict) -> dict:
+        subSubCategory = values.pop('class', None)
+        if subSubCategory:
+            values['subSubCategory'] = subSubCategory
         return values
 
     @classmethod
@@ -129,17 +138,21 @@ class Product(BaseModel):
         return values
 
     def to_json_model(self) -> dict[str, Any]:
-        data = self.model_dump(include={'name', 'image', 'name', 'tastingDescription'})
-        data['combined_score'] = int(self.combined_score())
-        data['country'] = self.country.code
-        data['category'] = self.category.description
-        data['alcohol'] = self.alcohol_score()
-        data['volume'] = self.get_numeric_volume()
-        data['unit_size'] = self.get_numeric_unit_size()
-        data['sale_price'] = self.get_numeric_current_price()
-        data['price'] = self.get_numeric_regular_price()
-        data['url'] = self.bcl_url()
-        return data;
+        data = self.model_dump(include={'name', 'image', 'tastingDescription'})
+        data.update({
+            'combined_score': int(self.combined_score()),
+            'country': self.country.code,
+            'category': self.category.description,
+            'alcohol': self.alcohol_score(),
+            'volume': self.get_numeric_volume(),
+            'price' : self.price_history.to_json_model() if self.price_history else None,
+            'unit_size': self.get_numeric_unit_size(),
+            'url': self.bcl_url(),
+            'ppml': self.price_per_milliliter(),
+            'full_category': [x.to_json_model() for x in self.full_category() if x],
+        })
+
+        return data
 
     class Config:
         frozen = True
@@ -149,7 +162,7 @@ class Product(BaseModel):
 
     def __eq__(self, other):
         if isinstance(other, Product):
-            return self.name == other.name and self.sku == other.sku # and self.upc == other.upc
+            return self.name == other.name and self.sku == other.sku  # and self.upc == other.upc
         return False
 
     # sort

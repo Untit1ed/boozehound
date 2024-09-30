@@ -62,7 +62,7 @@ FROM products;"""
                 unitSize=unit_size,
                 image=bcl_image_url,
                 subCategory=sub_category,
-                class_name=class_name,
+                subSubCategory=class_name,
                 price_history=max(history, key=lambda x: x.last_updated) if history else None
             )
 
@@ -127,7 +127,7 @@ FROM products;"""
                 self.country_repository.get_or_add_country(product.country), product.tastingDescription, product.volume,
                 product.alcoholPercentage, product.upc, product.unitSize, product.image,
                 self.category_repository.get_or_add_category(product.subCategory),
-                self.category_repository.get_or_add_category(product.class_name)
+                self.category_repository.get_or_add_category(product.subSubCategory)
             )
         )
 

@@ -1,6 +1,7 @@
 import datetime
 import os
 import threading
+import time
 from dotenv import load_dotenv
 from flask import Flask, jsonify
 
@@ -49,13 +50,13 @@ def run_daily_task():
     """Schedule the daily task."""
     while True:
         # Calculate the time until the next run (next day)
-        now = datetime.now()
+        now = datetime.datetime.now()
         next_run = now.replace(hour=0, minute=0, second=0, microsecond=0) + datetime.timedelta(days=1)
         wait_time = (next_run - now).total_seconds()
 
         # Wait until the next run
         print(f'Waiting `{wait_time}`...')
-        datetime.time.sleep(wait_time)
+        time.sleep(wait_time)
         print('Reloading products...')
         download_task()
         print('Products reloaded...')
@@ -74,7 +75,8 @@ def reload():
     return jsonify({"message": "Reload task started!"}), 202
 
 if __name__ == '__main__':
-    run_daily_task()
+    thread = threading.Thread(target=run_daily_task)
+    thread.start()
 
     #product_service.load_products(JSON_LOC)
     if os.getenv('ENV') == 'local':

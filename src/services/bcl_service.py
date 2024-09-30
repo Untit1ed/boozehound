@@ -64,4 +64,4 @@ class BCLService:
                     product.country.name,
                     product.combined_category(),
                 ])
-        print(f'\x1b[2K\r{len(products)} products stored im `{filename}`  successfully.')
+        print(f'\x1b[2K\r{len(products)} products stored im `{filename}` successfully.')

@@ -1,7 +1,9 @@
 from datetime import date, datetime
-from typing import Optional, Union
+from typing import Any, Optional, Union
 
 from pydantic import BaseModel
+
+from utils.type_utils import get_float
 
 
 class PriceHistory(BaseModel):
@@ -12,6 +14,14 @@ class PriceHistory(BaseModel):
     current_price: Optional[Union[str, float]] = None
     promotion_start_date: Optional[date] = None
     promotion_end_date: Optional[date] = None
+
+    def to_json_model(self) -> dict[str, Any]:
+        data = self.model_dump(include={'promotion_end_date'})
+        data.update({
+            'price': get_float(self.regular_price),
+            'sale_price': get_float(self.current_price),
+        })
+        return data
 
     class Config:
         frozen = True
