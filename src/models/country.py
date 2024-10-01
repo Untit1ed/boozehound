@@ -1,11 +1,15 @@
-from typing import Optional
+from typing import Any, Optional
 
 from pydantic import BaseModel
 
 
 class Country(BaseModel):
     name: str
-    code: Optional[str]
+    code: str
+
+    def to_json_model(self) -> dict[str, Any]:
+        data = self.model_dump(include={'name', 'code'})
+        return data
 
     class Config:
         frozen = True

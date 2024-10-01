@@ -6,55 +6,41 @@ categoryImageMap = {
    'Liquor': '/static/img/liquor.png',
 };
 
-// Define your Vue component
-const ItemComponent = {
-   props: ['item', 'index'],
-   template: `
-        <div class="category">
-          <h2>{{ item.category }}</h2>
-          <div class="grid item" v-for="(product, index) in item.items" :key="index">
-               <div class="image-container">
-                  <img
-                     :src="getCurrentImage(product)"
-                     @mouseover="changeImage(product, true)"
-                     @mouseleave="changeImage(product, false)"
-                     @error="handleImageError($event, product.category)" />
-                  <span :class="'fi fi-' + product.country.toLowerCase()" class="fis"></span>
-               </div>
-               <div class="product-details">
-                  <hgroup>
-                     <p class="price" v-if="product.price.sale_price !== product.price.price">
-                       <span class="crossed">\${{ product.price.price }}</span>
-                       <mark>\${{ product.price.sale_price }}
-                       </mark><br/>
-                       <small>\${{ (product.price.price - product.price.sale_price).toFixed(2) }} OFF (until {{printDate(product.price.promotion_end_date)}})</small>
-                     </p>
-                     <p class="price" v-else>\${{ product.price.price }}</p>
-                     <p>
-                        <a :href="product.url" target="blank">{{ product.name }}</a>
-                     </p>
-                  </hgroup>
-                     <p class="category">
-                        <a v-for="(category, i) in product.full_category" :key="i" class="contrast" :href="'#' + category.id">{{ category.description }}</a>
-                     </p>
+const FilterComponent = {
+   props: {
+      'filters': {
+         type: Object,
+         required: true
+      },
+      'resetFilters': {
+         type: Function,
+         required: true
+      }
+   },
+   template: '#filter-component',
+   methods: {
+      reset() {
+         this.resetFilters();
+      }
+   }
+};
 
-                  <div class="math">
-                     <small>
-                        <span>{{product.volume}}L</span> <span v-if="product.unit_size > 1">x {{product.unit_size}}</span>
-                     </small>
-                     <small>alc. {{ product.alcohol }}% vol.</small>
-                  </div>
-                  <div class="math">
-                     <small>\${{(product.ppml*100).toFixed(2)}}/100ml</small>
-                     <small>Boozecore: {{product.combined_score.toLocaleString()}}</small>
-                  </div>
-               </div>
-          </div>
-        </div>
-      `,
+const ItemComponent = {
+   props: {
+      'item': {
+         type: Object,
+         required: true
+      }, 'index': {
+         type: Number,
+         required: true
+      }, 'onFilter': {
+         type: Function,
+         required: true
+      }
+   },
+   template: '#item-component',
    methods: {
       handleImageError(event, category) {
-         console.log(category);
          event.target.src = categoryImageMap[category] || categoryImageMap['Liquor'];
       },
       getCurrentImage(product) {
@@ -69,19 +55,23 @@ const ItemComponent = {
 
          return formatter.format(new Date(dateString));
       },
+      filter(type, id) {
+         this.onFilter(type, id);
+      }
    }
-
 };
 
 // Create the Vue app
 const app = Vue.createApp({
    components: {
-      ItemComponent
+      'filter-component': FilterComponent,
+      'item-component': ItemComponent
    },
    data() {
       return {
          products: [],
          categories: [],
+         filters: {},
          loading: true
       };
    },
@@ -146,6 +136,27 @@ const app = Vue.createApp({
       setProducts(dataToStore) {
          this.products = dataToStore
          this.loading = false;
+      },
+      filter(type, id) {
+         this.filters = { ...this.filters, [type]: id };
+         console.log(this.filters);
+         const filteredProducts = this.products.filter((x) => {
+            result = true;
+
+            for(filter_type in this.filters){
+               if (filter_type == 'category')
+                  result = result && x.full_category.some((category) => category.id == this.filters[filter_type]);
+               if (filter_type == 'country')
+                  result = result && x.country.code == this.filters[filter_type];
+            }
+
+            return result;
+         });
+         this.categories = this.groupAndSort(filteredProducts, 'category', 'combined_score', 100);
+      },
+      resetFilters() {
+         this.filters = {};
+         this.categories = this.groupAndSort(this.products, 'category', 'combined_score', 100);
       },
       groupAndSort(data, groupByField, sortByField, topN) {
          // Step 1: Filter data based on combined_score

@@ -47,6 +47,21 @@ header {
    }
 }
 
+
+#app {
+   position: relative;
+
+   #filters{
+      position: absolute;
+      right:0px;
+      top:-100px;
+
+      button, span{
+         margin-left: calc(var(--pico-spacing)* .5);
+      }
+   }
+}
+
 .item {
    margin-bottom: 5px;
    border-radius: 10px;
@@ -71,7 +86,7 @@ header {
       color: var(--pico-muted-color);
    }
 
-   .category {
+   .item-category {
       font-size: small;
       a {
          display: block;

@@ -141,7 +141,7 @@ class Product(BaseModel):
         data = self.model_dump(include={'name', 'image', 'tastingDescription'})
         data.update({
             'combined_score': int(self.combined_score()),
-            'country': self.country.code,
+            'country': self.country.to_json_model(),
             'category': self.category.description,
             'alcohol': self.alcohol_score(),
             'volume': self.get_numeric_volume(),
