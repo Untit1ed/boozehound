@@ -53,24 +53,12 @@ const ItemComponent = {
       'item': {
          type: Object,
          required: true
-      }, 'index': {
-         type: Number,
-         required: true
-      }, 'onFilter': {
-         type: Function,
-         required: true
       }
    },
    template: '#item-component',
    methods: {
       handleImageError(event, category) {
          event.target.src = categoryImageMap[category] || categoryImageMap['Liquor'];
-      },
-      getCurrentImage(product) {
-         return product.isHovered ? product.image.replace('height400', 'height800') : product.image;
-      },
-      changeImage(product, isHover) {
-         product.isHovered = isHover;
       },
       printDate(dateString) {
          const options = { month: 'short', day: '2-digit' };
@@ -79,16 +67,54 @@ const ItemComponent = {
          return formatter.format(new Date(dateString));
       },
       filter(type, id) {
-         this.onFilter(type, id);
-      }
+         this.$emit('onFilter', type, id);
+      },
+      select(product) {
+         console.log('select', product);
+         this.$emit('onSelect', product);
+      },
    }
+};
+
+const ModalComponent = {
+   template: '#modal-component',
+   props: {
+      product: {
+         type: Object,
+         required: true,
+      },
+   },
+   mounted() {
+      document.body.classList.add('modal-is-opening');
+
+      setTimeout(() => {
+         document.body.classList.remove('modal-is-opening');
+         document.body.classList.add('modal-is-open');
+      }, 300);
+   },
+   methods: {
+      close() {
+         document.body.classList.add('modal-is-closing');
+         document.body.classList.remove('modal-is-open');
+
+         setTimeout(() => {
+            document.body.classList.remove('modal-is-closing');
+            this.$emit("onClose");
+         }, 300);
+      },
+      renderImage(){
+         console.log('renderImage', this.product);
+         return this.product.image.replace('height400', 'height800');
+      }
+   },
 };
 
 // Create the Vue app
 const app = Vue.createApp({
    components: {
-      'filter-component': FilterComponent,
-      'item-component': ItemComponent
+      ItemComponent,
+      FilterComponent,
+      ModalComponent,
    },
    data() {
       return {
@@ -100,7 +126,9 @@ const app = Vue.createApp({
             country: '',
             category: null,
          },
-         loading: true
+         loading: true,
+         isModalOpen: false,
+         selectedProduct: null,
       };
    },
    async mounted() {
@@ -109,12 +137,20 @@ const app = Vue.createApp({
       if (!this.products.length)
          return;
 
-      this.groupedProducts = this.groupAndSort(this.products, 'category', 'combined_score', 1000);
+      const filteredData = this.products.filter((item) => item.combined_score >= 1000);
+      this.groupedProducts = this.groupAndSort(filteredData, 'category', 'combined_score', 1000);
       this.countries = this.getCountries(this.products);
       this.categories = this.getCategories(this.products);
-      console.log(this.categories);
    },
    methods: {
+      openModal(product){
+         console.log('openModal', product);
+         this.selectedProduct = product;
+         this.isModalOpen = true;
+      },
+      closeModal() {
+         this.isModalOpen = false;
+      },
       async loadData() {
          const storedData = localStorage.getItem('ProductData');
 
@@ -167,30 +203,74 @@ const app = Vue.createApp({
       getCountries(products) {
          const countriesSet = new Set();
 
-         return products.reduce((acc, item) => {
-            const { name, code } = item.country;
-            if (!countriesSet.has(code)) {
-               countriesSet.add(code);
-               acc.push({ name, code });
-            }
-            return acc;
-         }, []).sort((a, b) => a.name.localeCompare(b.name));
+         return products
+            .reduce((acc, item) => {
+               const { name, code } = item.country;
+               if (!countriesSet.has(code)) {
+                  countriesSet.add(code);
+                  acc.push({ name, code });
+               }
+               return acc;
+            }, [])
+            .sort((a, b) => a.name.localeCompare(b.name));
       },
       getCategories(products) {
-         const categorySet = new Set();
+         const groupedCategories = {};
 
-         return products.reduce((acc, item) => {
-            const categories = item.full_category;
-            categories.forEach((category, index) => {
-               const { id, description } = category;
-               if (!categorySet.has(id)) {
-                  categorySet.add(id);
-                  acc.push({ id, 'description': `${Array(index).fill('-').join('')} ${description}` });
+         products.forEach(product => {
+            const [cat, subCat, subSubCat] = product.full_category;
+
+            // Initialize the main category if it doesn't exist
+            if (!groupedCategories[cat.id]) {
+               groupedCategories[cat.id] = {
+                  id: cat.id,
+                  description: cat.description,
+                  subcategories: {}
+               };
+            }
+
+            // Initialize the subcategory if it doesn't exist
+            if (!groupedCategories[cat.id].subcategories[subCat.id]) {
+               groupedCategories[cat.id].subcategories[subCat.id] = {
+                  id: subCat.id,
+                  description: `- ${subCat.description}`,
+                  subSubcategories: {}
+               };
+            }
+
+            // Initialize the sub-subcategory if it doesn't exist
+            if (!groupedCategories[cat.id].subcategories[subCat.id].subSubcategories[subSubCat.id]) {
+               groupedCategories[cat.id].subcategories[subCat.id].subSubcategories[subSubCat.id] = {
+                  id: subSubCat.id,
+                  description: `-- ${subSubCat.description}`
+               };
+            }
+         });
+
+         function flattenObject(obj) {
+            const result = [];
+
+            function recurse(current) {
+               if (current.id && current.description) {
+                  result.push({ id: current.id, description: current.description });
                }
-            });
 
-            return acc;
-         }, []);
+               // Flatten subcategories
+               Object.values(current.subcategories || {}).forEach(subcat => {
+                  recurse(subcat);
+                  // Flatten sub-subcategories within each subcategory
+                  Object.values(subcat.subSubcategories || {}).forEach(subSubcat => recurse(subSubcat));
+               });
+            }
+
+            Object.values(obj).forEach(recurse);
+            return result;
+         }
+
+         const result = flattenObject(groupedCategories);
+
+         console.log(result);
+         return result;
       },
       setProducts(dataToStore) {
          this.products = dataToStore
@@ -207,7 +287,7 @@ const app = Vue.createApp({
       },
       filter() {
          console.log(this.filters);
-         const filteredProducts = this.products.filter((x) => {
+         var filteredProducts = this.products.filter((x) => {
             result = true;
 
             for (filter_type in this.filters) {
@@ -222,14 +302,15 @@ const app = Vue.createApp({
 
             return result;
          });
+
+         if (this.products.length == filteredProducts.length)
+            filteredProducts = filteredProducts.filter((item) => item.combined_score >= 1000);
+
          this.groupedProducts = this.groupAndSort(filteredProducts, 'category', 'combined_score', 1000);
       },
       groupAndSort(data, groupByField, sortByField, topN) {
-         // Step 1: Filter data based on combined_score
-         const filteredData = data.filter((item) => item.combined_score >= 1000);
-
          // Step 2: Group by the specified field
-         const groupedData = filteredData.reduce((acc, item) => {
+         const groupedData = data.filter((x) => x.price).reduce((acc, item) => {
             const key = item[groupByField];
             if (!acc[key]) {
                acc[key] = [];

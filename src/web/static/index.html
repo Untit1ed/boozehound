@@ -28,13 +28,14 @@
       </hgroup>
    </header>
    <main id="app" class="container">
+      <filter-component v-if="!loading" :country.sync="filters.country" :category.sync="filters.category"
+         :countries="countries" :categories="categories" :update-filters="updateFilters"></filter-component>
       <article v-if="loading" aria-busy="true"></article>
       <div class="grid" v-else>
-         <item-component v-for="(category, index) in groupedProducts" :key="index" :item="category" :index="index"
-            :on-filter="setFilter" />
+         <item-component v-for="(category, index) in groupedProducts" :key="index" :item="category"
+            @on-filter="setFilter" @on-select="openModal"></item-component>
       </div>
-      <filter-component :country.sync="filters.country" :category.sync="filters.category"
-         :countries="countries" :categories="categories" :update-filters="updateFilters" />
+      <modal-component v-if="isModalOpen" :product="selectedProduct" @on-close="closeModal"></modal-component>
    </main>
    <footer class="container">
       <nav>
@@ -53,7 +54,7 @@
    </footer>
 
    <script type="text/x-template" id="filter-component">
-      <div id="filters" class="grid">
+      <div id="filterSs" class="grid">
          <select name="country" aria-label="Counties" required :value="country" @change="update('country', $event)">
             <option value="">All</option>
             <option v-for="country in countries" :key="country.code" :value="country.code">
@@ -73,10 +74,12 @@
    <script type="text/x-template" id="item-component">
       <div class="category">
          <h2>{{ item.category }}</h2>
-         <div class="grid item" v-for="(product, index) in item.items" :key="index">
+         <div class="grid item" v-for="(product, index) in item.items"
+            :key="index">
             <div class="image-container">
-               <img :src="getCurrentImage(product)" @mouseover="changeImage(product, true)"
-                  @mouseleave="changeImage(product, false)" @error="handleImageError($event, product.category)" />
+               <img :src="product.image"
+                  @click="select(product)"
+                  @error="handleImageError($event, product.category)" />
                <a href="#" :class="'fi fi-' + product.country.code.toLowerCase()" class="fis" @click="filter('country', product.country.code)"></a>
             </div>
             <div class="product-details">
@@ -96,7 +99,6 @@
                <p class="item-category">
                   <a href="#" v-for="(category, i) in product.full_category" :key="i" class="contrast" @click="filter('category', category.id)">{{category.description }}</a>
                </p>
-
                <div class="math">
                   <small>
                      <span>{{product.volume}}L</span> <span v-if="product.unit_size > 1">x {{product.unit_size}}</span>
@@ -110,6 +112,35 @@
             </div>
          </div>
       </div>
+   </script>
+
+   <script type="text/x-template" id="modal-component">
+      <dialog class="modal" open>
+         <article class="modal-content">
+            <header>
+               <button @click="close()" aria-label="Close" rel="prev" data-target="modal-example"></button>
+               <label>{{ product.name }}</label>
+            </header>
+            <div class="grid">
+               <img :src="renderImage()" class="modal-image" />
+               <div>
+                  <hgroup>
+                     <h3><a :href="product.url" target="blank">{{ product.name }}</a></h3>
+                     <p>{{ product.tastingDescription }}</p>
+                  </hgroup>
+                  <div>
+                        <b>Price:</b> <span>${{ product.price.sale_price }}</span><br/>
+                        <b>Unit size:</b> <span>{{ product.unit_size }}</span><br/>
+                        <b>Volume:</b> <span>{{ product.volume }}L</span><br/>
+                        <b>Alc.:</b> <span>${{ product.alcohol }}</span><br/>
+                  </div>
+               </div>
+            </div>
+            <footer>
+               <button autofocus="" data-target="modal-example" @click="close()">Close</button>
+            </footer>
+         </article>
+      </dialog>
    </script>
 
    <script src="/static/main.js"></script>
