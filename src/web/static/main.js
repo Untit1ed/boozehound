@@ -8,11 +8,25 @@ categoryImageMap = {
 
 const FilterComponent = {
    props: {
-      'filters': {
-         type: Object,
+      'country': {
+         type: String,
+         required: false,
+         default: "",
+      },
+      'category': {
+         type: Number,
+         required: false,
+         default: null,
+      },
+      'countries': {
+         type: Array,
          required: true
       },
-      'resetFilters': {
+      'categories': {
+         type: Array,
+         required: true
+      },
+      'updateFilters': {
          type: Function,
          required: true
       }
@@ -20,7 +34,16 @@ const FilterComponent = {
    template: '#filter-component',
    methods: {
       reset() {
-         this.resetFilters();
+         this.updateFilters();
+      },
+      update(type, event) {
+         if (type == 'country') {
+            value = event.target.value;
+         } else if (type == 'category') {
+            value = event.target.value != "" ? Number(event.target.value) : null;
+         }
+
+         this.updateFilters({ ...{ 'country': this.country, 'category': this.category }, [type]: value });
       }
    }
 };
@@ -70,8 +93,13 @@ const app = Vue.createApp({
    data() {
       return {
          products: [],
+         countries: [],
          categories: [],
-         filters: {},
+         groupedProducts: [],
+         filters: {
+            country: '',
+            category: null,
+         },
          loading: true
       };
    },
@@ -81,7 +109,10 @@ const app = Vue.createApp({
       if (!this.products.length)
          return;
 
-      this.categories = this.groupAndSort(this.products, 'category', 'combined_score', 100);
+      this.groupedProducts = this.groupAndSort(this.products, 'category', 'combined_score', 1000);
+      this.countries = this.getCountries(this.products);
+      this.categories = this.getCategories(this.products);
+      console.log(this.categories);
    },
    methods: {
       async loadData() {
@@ -130,20 +161,59 @@ const app = Vue.createApp({
             console.error('Error fetching data:', error);
          } finally {
             console.log("Setting products...");
-            this.setProducts(data.products)
+            this.setProducts(data.products);
          }
+      },
+      getCountries(products) {
+         const countriesSet = new Set();
+
+         return products.reduce((acc, item) => {
+            const { name, code } = item.country;
+            if (!countriesSet.has(code)) {
+               countriesSet.add(code);
+               acc.push({ name, code });
+            }
+            return acc;
+         }, []).sort((a, b) => a.name.localeCompare(b.name));
+      },
+      getCategories(products) {
+         const categorySet = new Set();
+
+         return products.reduce((acc, item) => {
+            const categories = item.full_category;
+            categories.forEach((category, index) => {
+               const { id, description } = category;
+               if (!categorySet.has(id)) {
+                  categorySet.add(id);
+                  acc.push({ id, 'description': `${Array(index).fill('-').join('')} ${description}` });
+               }
+            });
+
+            return acc;
+         }, []);
       },
       setProducts(dataToStore) {
          this.products = dataToStore
          this.loading = false;
       },
-      filter(type, id) {
-         this.filters = { ...this.filters, [type]: id };
+      setFilter(type, id) {
+         this.filters = { ...{ "country": "", "category": "" }, ...this.filters, [type]: id };
+         this.filter();
+      },
+      updateFilters(filters = {}) {
+         console.log('Update filters', filters);
+         this.filters = filters;
+         this.filter();
+      },
+      filter() {
          console.log(this.filters);
          const filteredProducts = this.products.filter((x) => {
             result = true;
 
-            for(filter_type in this.filters){
+            for (filter_type in this.filters) {
+               if (!this.filters[filter_type])
+                  continue;
+
                if (filter_type == 'category')
                   result = result && x.full_category.some((category) => category.id == this.filters[filter_type]);
                if (filter_type == 'country')
@@ -152,15 +222,12 @@ const app = Vue.createApp({
 
             return result;
          });
-         this.categories = this.groupAndSort(filteredProducts, 'category', 'combined_score', 100);
-      },
-      resetFilters() {
-         this.filters = {};
-         this.categories = this.groupAndSort(this.products, 'category', 'combined_score', 100);
+         this.groupedProducts = this.groupAndSort(filteredProducts, 'category', 'combined_score', 1000);
       },
       groupAndSort(data, groupByField, sortByField, topN) {
          // Step 1: Filter data based on combined_score
          const filteredData = data.filter((item) => item.combined_score >= 1000);
+
          // Step 2: Group by the specified field
          const groupedData = filteredData.reduce((acc, item) => {
             const key = item[groupByField];

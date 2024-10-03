@@ -52,6 +52,7 @@ header {
    position: relative;
 
    #filters{
+      max-width:800px;
       position: absolute;
       right:0px;
       top:-100px;

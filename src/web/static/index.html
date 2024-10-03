@@ -30,10 +30,11 @@
    <main id="app" class="container">
       <article v-if="loading" aria-busy="true"></article>
       <div class="grid" v-else>
-         <item-component v-for="(category, index) in categories" :key="index" :item="category" :index="index"
-            :on-filter="filter" />
+         <item-component v-for="(category, index) in groupedProducts" :key="index" :item="category" :index="index"
+            :on-filter="setFilter" />
       </div>
-      <filter-component :filters="filters" :reset-filters="resetFilters" />
+      <filter-component :country.sync="filters.country" :category.sync="filters.category"
+         :countries="countries" :categories="categories" :update-filters="updateFilters" />
    </main>
    <footer class="container">
       <nav>
@@ -52,9 +53,20 @@
    </footer>
 
    <script type="text/x-template" id="filter-component">
-      <div v-if="Object.keys(filters).length" id="filters">
-         Filters: <span v-for="(value, key) in filters" :key="key" :id="key">{{ value }}</span>
-         <button class="secondary" @click="reset()">Reset</button>
+      <div id="filters" class="grid">
+         <select name="country" aria-label="Counties" required :value="country" @change="update('country', $event)">
+            <option value="">All</option>
+            <option v-for="country in countries" :key="country.code" :value="country.code">
+               {{ country.name }}
+            </option>
+         </select>
+         <select name="category" aria-label="Categories" required :value="category" @change="update('category', $event)">
+            <option value="">All</option>
+            <option v-for="category in categories" :key="category.id" :value="category.id">
+               {{ category.description }}
+            </option>
+         </select>
+         <button class="secondary" type="reset" @click="reset()">Reset</button>
       </div>
    </script>
 
@@ -65,7 +77,7 @@
             <div class="image-container">
                <img :src="getCurrentImage(product)" @mouseover="changeImage(product, true)"
                   @mouseleave="changeImage(product, false)" @error="handleImageError($event, product.category)" />
-               <a href="#" :class="'fi fi-' + product.country.code.toLowerCase()" class="fis" @click="filter('country', product.country.code)"></span>
+               <a href="#" :class="'fi fi-' + product.country.code.toLowerCase()" class="fis" @click="filter('country', product.country.code)"></a>
             </div>
             <div class="product-details">
                <hgroup>
