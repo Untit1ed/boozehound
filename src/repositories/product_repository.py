@@ -48,7 +48,7 @@ FROM products;"""
             sub_category = self.category_repository.categories_map.get(sub_category_id)
             class_name = self.category_repository.categories_map.get(class_id)
             country = self.country_repository.countries_map.get(country_code)
-            history = self.history_repository.history_map.get(upc)
+            history = self.history_repository.history_map.get(sku)
 
             product = Product(
                 sku=sku,
@@ -63,7 +63,7 @@ FROM products;"""
                 image=bcl_image_url,
                 subCategory=sub_category,
                 subSubCategory=class_name,
-                price_history=max(history, key=lambda x: x.last_updated) if history else None
+                price_history=sorted(history, key=lambda x: x.last_updated) if history else None
             )
 
             product_dict[product] = id

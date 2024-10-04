@@ -77,21 +77,21 @@
          <div class="grid item" v-for="(product, index) in item.items"
             :key="index">
             <div class="image-container">
-               <img :src="product.image"
-                  @click="select(product)"
-                  @error="handleImageError($event, product.category)" />
+               <div @click="select(product)">
+                  <img :src="product.image" @error="handleImageError($event, product.category)" />
+               </div>
                <a href="#" :class="'fi fi-' + product.country.code.toLowerCase()" class="fis" @click="filter('country', product.country.code)"></a>
             </div>
             <div class="product-details">
                <hgroup>
-                  <p class="price" v-if="product.price.sale_price !== product.price.price">
-                     <span class="crossed">${{ product.price.price }}</span>
-                     <mark>${{ product.price.sale_price }}
+                  <p class="price" v-if="product.latest_price.sale_price !== product.latest_price.price">
+                     <span class="crossed">${{ product.latest_price.price }}</span>
+                     <mark>${{ product.latest_price.sale_price }}
                      </mark><br />
-                     <small>${{ (product.price.price - product.price.sale_price).toFixed(2) }} OFF (until
-                        {{printDate(product.price.promotion_end_date)}})</small>
+                     <small>${{ (product.latest_price.price - product.latest_price.sale_price).toFixed(2) }} OFF (until
+                        {{printDate(product.latest_price.promotion_end_date)}})</small>
                   </p>
-                  <p class="price" v-else>${{ product.price.price }}</p>
+                  <p class="price" v-else>${{ product.latest_price.price }}</p>
                   <p>
                      <a :href="product.url" target="blank">{{ product.name }}</a>
                   </p>
@@ -122,45 +122,48 @@
                <label>{{ product.name }}</label>
             </header>
             <div class="grid">
-               <img
-                  :src="renderImage()"
-                  @error="handleImageError($event, product.category)"
-                  class="modal-image" />
+               <div class="image-container">
+                  <img
+                     :src="renderImage()"
+                     @error="handleImageError($event, product.category)"
+                     class="modal-image" />
+               </div>
                <div>
                   <hgroup>
                      <h3><a :href="product.url" target="blank">{{ product.name }}</a></h3>
                      <p>{{ product.tastingDescription }}</p>
                   </hgroup>
-                  <div>
-                        <table>
-                           <tbody>
-                             <tr>
-                               <th scope="row">Price</th>
-                               <td>${{ product.price.sale_price }}</td>
-                             </tr>
-                             <tr>
-                               <th scope="row">Unit size</th>
-                               <td>{{ product.unit_size }}</td>
-                             </tr>
-                             <tr>
-                               <th scope="row">Volume</th>
-                               <td>{{ product.volume }}L</td>
-                             </tr>
-                             <tr>
-                               <th scope="row">Alc. %</th>
-                               <td>{{ product.alcohol }}%</td>
-                             </tr>
-                             <tr>
-                               <th scope="row">$/100ml</th>
-                               <td>${{ (product.ppml*100).toFixed(2) }}/100ml</td>
-                             </tr>
-                             <tr>
-                               <th scope="row">Boozecore</th>
-                               <td>{{ product.combined_score.toLocaleString() }} / {{ max_score.toLocaleString() }}</td>
-                             </tr>
-                           </tbody>
-                        </table>
-                  </div>
+
+                     <table>
+                        <tbody>
+                          <tr>
+                            <th scope="row">Price</th>
+                            <td>${{ product.latest_price.sale_price }}</td>
+                          </tr>
+                          <tr>
+                            <th scope="row">Unit size</th>
+                            <td>{{ product.unit_size }}</td>
+                          </tr>
+                          <tr>
+                            <th scope="row">Volume</th>
+                            <td>{{ product.volume }}L</td>
+                          </tr>
+                          <tr>
+                            <th scope="row">Alc. %</th>
+                            <td>{{ product.alcohol }}%</td>
+                          </tr>
+                          <tr>
+                            <th scope="row">$/100ml</th>
+                            <td>${{ (product.ppml*100).toFixed(2) }}/100ml</td>
+                          </tr>
+                          <tr>
+                            <th scope="row">Boozecore</th>
+                            <td>{{ product.combined_score.toLocaleString() }} / {{ max_score.toLocaleString() }}</td>
+                          </tr>
+                        </tbody>
+                     </table>
+
+                  <canvas ref="myChart" width="400" height="400"></canvas>
                </div>
             </div>
             <footer>
@@ -170,6 +173,9 @@
       </dialog>
    </script>
 
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
+   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+   <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script> <!-- Include the date adapter -->
    <script src="/static/main.js"></script>
 </body>
 

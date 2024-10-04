@@ -26,7 +26,7 @@ class PriceHistoryRepository:
         :return: A dictionary mapping PriceHistory objects to product IDs.
         """
         query = """SELECT
-    last_updated, upc, sku, regular_price, current_price, promotion_start_date, promotion_end_date, source
+    last_updated, sku, regular_price, current_price, promotion_start_date, promotion_end_date, source
 FROM price_history;"""
 
         print('Loading price histories from DB...', end='\r')
@@ -36,10 +36,9 @@ FROM price_history;"""
         price_history_dict = {}
 
         for row in price_histories:
-            last_updated, upc, sku, regular_price, current_price, promotion_start_date, promotion_end_date, source = row
+            last_updated, sku, regular_price, current_price, promotion_start_date, promotion_end_date, source = row
 
             history = PriceHistory(
-                upc=upc,
                 sku=sku,
                 last_updated=last_updated,
                 regular_price=regular_price,
@@ -48,7 +47,7 @@ FROM price_history;"""
                 promotion_end_date=promotion_end_date
             )
 
-            price_history_dict.setdefault(upc, []).append(history)
+            price_history_dict.setdefault(sku, []).append(history)
 
         return price_history_dict
 
@@ -57,7 +56,7 @@ FROM price_history;"""
         history: PriceHistory,
     ) -> str:
         """
-        Retrieve the history ID if it exists in memory based on upc;
+        Retrieve the history ID if it exists in memory based on sku;
         otherwise, insert the history into the database and return the new ID.
 
         :param history: The history object.
@@ -65,30 +64,30 @@ FROM price_history;"""
         """
 
         # Check if the history is already in memory
-        if history.upc in self.history_map and history in self.history_map[history.upc]:
-            return history.upc
+        if history.sku in self.history_map and history in self.history_map[history.sku]:
+            return history.sku
 
         # Insert category into the database
         insert_query = """
             INSERT INTO price_history (
-                last_updated, upc, sku, regular_price, current_price, promotion_start_date, promotion_end_date, source
+                last_updated, sku, regular_price, current_price, promotion_start_date, promotion_end_date, source
             ) VALUES(%s, %s, %s, %s, %s, %s, %s, 'bcl');
         """
         new_id = self.db_helper.insert_query(
             insert_query,
             (
-                history.last_updated, history.upc, history.sku, history.regular_price, history.current_price,
+                history.last_updated, history.sku, history.regular_price, history.current_price,
                 history.promotion_start_date,
                 history.promotion_end_date
             )
         )
 
         # Update the in-memory dictionary
-        self.history_map.setdefault(history.upc, []).append(history)
+        self.history_map.setdefault(history.sku, []).append(history)
 
-        print(f"{(history.upc)} history was inserted with id {new_id}.")
+        print(f"{(history.sku)} history was inserted with id {new_id}.")
 
-        return history.upc
+        return history.sku
 
     def convert_to_date(elf, datetime_string):
         if datetime_string is None:

@@ -96,13 +96,17 @@ header {
 
    .image-container {
       position: relative;
-      display: flex;
-      overflow: hidden;
-      justify-content: center;
-      /* Center horizontally */
-      align-items: center;
-      /* Center vertically */
-      background-color: white;
+
+      div {
+         width: 100%;
+         height: 100%;
+         display: flex;
+         overflow: hidden;
+         justify-content: center;
+         align-items: center;
+         background-color: white;
+         cursor: pointer;
+      }
 
       img {
          max-height: 100px;
@@ -137,22 +141,31 @@ header {
    }
 }
 
-.image-container img::after {
-   content: attr(data-src);
-}
-
-.grid.item:hover {
-   background-color: rgba(102, 102, 102, 0.1);
-
-   .image-container img {
-      transform: scale(1.25);
-   }
-
-   .image-container img {}
-
-
-
+.modal-content {
    .image-container {
-      background-image: attr(data-src url);
+      position: relative;
+
+      width: 100%;
+      height: 800px;
+      display: flex;
+      overflow: hidden;
+      justify-content: center;
+      align-items: center;
+      background-color: white;
    }
-}
+
+   .grid.item:hover {
+      background-color: rgba(102, 102, 102, 0.1);
+
+      .image-container img {
+         transform: scale(1.25);
+      }
+
+      .image-container img {}
+
+
+
+      .image-container {
+         background-image: attr(data-src url);
+      }
+   }

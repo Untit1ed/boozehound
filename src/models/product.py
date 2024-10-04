@@ -25,16 +25,16 @@ class Product(BaseModel):
     category: Optional[Category]
     subCategory: Optional[Category]
     subSubCategory: Optional[Category]
-    price_history: Optional[PriceHistory] = None
+    price_history: Optional[List[PriceHistory]] = None
 
     def get_numeric_volume(self) -> float:
         return get_float(self.volume)
 
     def get_numeric_current_price(self) -> float:
-        return get_float(self.price_history.current_price if self.price_history else 0)
+        return get_float(max(self.price_history, key=lambda x: x.last_updated).current_price if self.price_history else 0)
 
     def get_numeric_regular_price(self) -> float:
-        return get_float(self.price_history.regular_price if self.price_history else 0)
+        return get_float(max(self.price_history, key=lambda x: x.last_updated).regular_price if self.price_history else 0)
 
     def get_numeric_unit_size(self) -> int:
         return self.unitSize if self.unitSize else 1
@@ -123,32 +123,34 @@ class Product(BaseModel):
 
     @classmethod
     def combine_history_fields(cls: Type['Product'], values: dict) -> dict:
-        upc = values.get('upc')
         sku = values.get('sku')
         last_updated = values.pop('last_updated', None)
         currentPrice = values.pop('currentPrice', None)
         regularPrice = values.pop('regularPrice', None)
         promotion_start_date = values.pop('promotionStartDate', None)
         promotion_end_date = values.pop('promotionEndDate', None)
-        if upc and last_updated:
-            values['price_history'] = PriceHistory(
-                upc=upc, sku=sku, last_updated=last_updated, current_price=currentPrice, regular_price=regularPrice,
+        if sku and last_updated:
+            if 'price_history' not in values:
+                values['price_history'] = []
+
+            values['price_history'].append(PriceHistory(
+                sku=sku, last_updated=last_updated, current_price=currentPrice, regular_price=regularPrice,
                 promotion_start_date=promotion_start_date, promotion_end_date=promotion_end_date
-            )
+            ))
         return values
 
     def to_json_model(self) -> dict[str, Any]:
-        data = self.model_dump(include={'name', 'image', 'tastingDescription'})
+        data = self.model_dump(include={'name', 'sku', 'tastingDescription'})
         data.update({
             'combined_score': int(self.combined_score()),
             'country': self.country.to_json_model(),
             'category': self.category.description,
             'alcohol': self.alcohol_score(),
             'volume': self.get_numeric_volume(),
-            'price' : self.price_history.to_json_model() if self.price_history else None,
+            'price': [x.to_json_model_simple() for x in self.price_history] if self.price_history else None,
             'unit_size': self.get_numeric_unit_size(),
-            'url': self.bcl_url(),
             'ppml': self.price_per_milliliter(),
+            'latest_price': max(self.price_history, key=lambda x: x.last_updated).to_json_model() if self.price_history else None,
             'full_category': [x.to_json_model() for x in self.full_category() if x],
         })
 

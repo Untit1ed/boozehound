@@ -104,8 +104,49 @@ const ModalComponent = {
          document.body.classList.remove('modal-is-opening');
          document.body.classList.add('modal-is-open');
       }, 300);
+
+      priceData = this.product.price.map(entry => entry.price);
+      dateLabels = this.product.price.map(entry => new Date(entry.last_updated));
+
+      const ctx = this.$refs.myChart.getContext('2d');
+      const chart = new Chart(ctx, {
+         type: 'line',
+         data: {
+            labels: dateLabels,
+            datasets: [{
+               label: 'Price',
+               data: priceData,
+               borderColor: '#82ab00',
+               backgroundColor: '#202632',
+               fill: true,
+            }]
+         },
+         options: {
+            plugins: { legend: { display: false } },
+            scales: {
+               x: {
+                  type: 'time', // Specify that the x-axis is time
+                  title: {
+                     display: true,
+                     text: 'Date'
+                  }
+               },
+               y: {
+                  title: {
+                     display: true,
+                     text: 'Price'
+                  },
+                  ticks: {
+                     callback: function (value) {
+                        return value.toFixed(2); // Format y-axis ticks to 2 decimal places
+                     }
+                  }
+               }
+            }
+         }
+      });
    },
-   beforeUnmount(){
+   beforeUnmount() {
       document
          .getElementById('modalDialog')
          .removeEventListener('click', this.close);
@@ -123,13 +164,12 @@ const ModalComponent = {
             this.$emit("onClose");
          }, 300);
       },
-      renderImage(){
+      renderImage() {
          return this.product.image.replace('height400', 'height800');
       }
    },
 };
 
-// Create the Vue app
 const app = Vue.createApp({
    components: {
       ItemComponent,
@@ -165,7 +205,7 @@ const app = Vue.createApp({
       this.categories = this.getCategories(this.products);
    },
    methods: {
-      openModal(product){
+      openModal(product) {
          this.selectedProduct = product;
          this.isModalOpen = true;
       },
@@ -173,7 +213,7 @@ const app = Vue.createApp({
          this.isModalOpen = false;
       },
       async loadData() {
-         const storedData = localStorage.getItem('ProductData');
+         const storedData = LZString.decompress(localStorage.getItem('ProductData'));
 
          var storedDataOject = { products: [] };
          if (storedData) {
@@ -211,7 +251,7 @@ const app = Vue.createApp({
                timestamp: new Date().getTime()
             });
 
-            localStorage.setItem('ProductData', dataToStore);
+            localStorage.setItem('ProductData', LZString.compress(dataToStore));
             console.log('Fetched.')
 
          } catch (error) {
@@ -333,7 +373,12 @@ const app = Vue.createApp({
             if (!acc[key]) {
                acc[key] = [];
             }
-            acc[key].push(item);
+
+            acc[key].push({
+               ...item,
+               url: this.get_url(item.sku),
+               image: this.get_image(item.sku)
+            });
             return acc;
          }, {});
 
@@ -358,6 +403,9 @@ const app = Vue.createApp({
 
          return sortedResult;
       },
+      get_url: (sku) => `https://www.bcliquorstores.com/product/${sku}`,
+      get_image: (sku) => `https://www.bcliquorstores.com/sites/default/files/imagecache/height400px/${sku}.jpg`
+
    }
 });
 
