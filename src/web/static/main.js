@@ -85,6 +85,10 @@ const ModalComponent = {
       },
    },
    mounted() {
+      document
+         .getElementById('modalDialog')
+         .addEventListener('click', this.close);
+
       document.body.classList.add('modal-is-opening');
 
       setTimeout(() => {
@@ -92,7 +96,15 @@ const ModalComponent = {
          document.body.classList.add('modal-is-open');
       }, 300);
    },
+   beforeUnmount(){
+      document
+         .getElementById('modalDialog')
+         .removeEventListener('click', this.close);
+   },
    methods: {
+      handleImageError(event, category) {
+         event.target.src = categoryImageMap[category] || categoryImageMap['Liquor'];
+      },
       close() {
          document.body.classList.add('modal-is-closing');
          document.body.classList.remove('modal-is-open');

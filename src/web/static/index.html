@@ -54,7 +54,7 @@
    </footer>
 
    <script type="text/x-template" id="filter-component">
-      <div id="filterSs" class="grid">
+      <fieldset role="group">
          <select name="country" aria-label="Counties" required :value="country" @change="update('country', $event)">
             <option value="">All</option>
             <option v-for="country in countries" :key="country.code" :value="country.code">
@@ -68,7 +68,7 @@
             </option>
          </select>
          <button class="secondary" type="reset" @click="reset()">Reset</button>
-      </div>
+      </fieldset>
    </script>
 
    <script type="text/x-template" id="item-component">
@@ -115,14 +115,17 @@
    </script>
 
    <script type="text/x-template" id="modal-component">
-      <dialog class="modal" open>
+      <dialog id="modalDialog" class="modal" open>
          <article class="modal-content">
             <header>
                <button @click="close()" aria-label="Close" rel="prev" data-target="modal-example"></button>
                <label>{{ product.name }}</label>
             </header>
             <div class="grid">
-               <img :src="renderImage()" class="modal-image" />
+               <img
+                  :src="renderImage()"
+                  @error="handleImageError($event, product.category)"
+                  class="modal-image" />
                <div>
                   <hgroup>
                      <h3><a :href="product.url" target="blank">{{ product.name }}</a></h3>
@@ -132,12 +135,12 @@
                         <b>Price:</b> <span>${{ product.price.sale_price }}</span><br/>
                         <b>Unit size:</b> <span>{{ product.unit_size }}</span><br/>
                         <b>Volume:</b> <span>{{ product.volume }}L</span><br/>
-                        <b>Alc.:</b> <span>${{ product.alcohol }}</span><br/>
+                        <b>Alc.:</b> <span>{{ product.alcohol }}%</span><br/>
                   </div>
                </div>
             </div>
             <footer>
-               <button autofocus="" data-target="modal-example" @click="close()">Close</button>
+               <button autofocus="" @click="close()">Close</button>
             </footer>
          </article>
       </dialog>
