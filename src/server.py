@@ -79,9 +79,14 @@ def reload():
 def start():
     thread = threading.Thread(target=run_daily_task)
     thread.start()
-    return jsonify({"message": "Daily task started!"}), 202
+    try:
+        return jsonify({"message": "Daily task started!"}), 202
+    except RuntimeError:
+        pass
 
 
+if __name__ == 'src.server':
+    start()
 if __name__ == '__main__':
     start()
     # product_service.load_products(JSON_LOC)
