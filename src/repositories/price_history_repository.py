@@ -71,7 +71,7 @@ FROM price_history;"""
         insert_query = """
             INSERT INTO price_history (
                 last_updated, sku, regular_price, current_price, promotion_start_date, promotion_end_date, source
-            ) VALUES(%s, %s, %s, %s, %s, %s, %s, 'bcl');
+            ) VALUES(%s, %s, %s, %s, %s, %s, 'bcl');
         """
         new_id = self.db_helper.insert_query(
             insert_query,
