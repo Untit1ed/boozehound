@@ -29,13 +29,11 @@ def favicon():
     # return render_template('index.html')
     return app.send_static_file('favicon.ico')
 
-# Endpoint that returns the HTML file
+
 @app.route('/')
 def index():
     # return render_template('index.html')
     return app.send_static_file('index.html')
-
-# API endpoint that returns JSON data
 
 
 @app.route('/api/data', methods=['GET'])
@@ -61,6 +59,7 @@ def run_daily_task():
         download_task()
         print('Products reloaded...')
 
+
 def download_task():
     bcl = BCLService()
     bcl.download_json(BCL_URL, JSON_LOC)
@@ -68,17 +67,24 @@ def download_task():
     product_service.load_products(JSON_LOC)
     product_service.persist_products()
 
+
 @app.route('/reload', methods=['POST'])
 def reload():
     thread = threading.Thread(target=download_task)
     thread.start()  # Start the background task
     return jsonify({"message": "Reload task started!"}), 202
 
-if __name__ == '__main__':
+
+@app.route('/start', methods=['GET'])
+def start():
     thread = threading.Thread(target=run_daily_task)
     thread.start()
+    return jsonify({"message": "Daily task started!"}), 202
 
-    #product_service.load_products(JSON_LOC)
+
+if __name__ == '__main__':
+    start()
+    # product_service.load_products(JSON_LOC)
     if os.getenv('ENV') == 'local':
         app.run(host='0.0.0.0', port=80, debug=True, use_reloader=False)
     else:
