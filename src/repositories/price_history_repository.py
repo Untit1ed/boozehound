@@ -62,7 +62,7 @@ FROM price_history;"""
         :param history: The history object.
         :return: The ID of the product.
         """
-
+        history = history[-1]
         # Check if the history is already in memory
         if history.sku in self.history_map and history in self.history_map[history.sku]:
             return history.sku

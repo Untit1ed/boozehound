@@ -108,6 +108,7 @@ const ModalComponent = {
       priceData = this.product.price.map(entry => entry.price);
       dateLabels = this.product.price.map(entry => new Date(entry.last_updated));
 
+      let delayed;
       const ctx = this.$refs.myChart.getContext('2d');
       const chart = new Chart(ctx, {
          type: 'line',
@@ -122,6 +123,18 @@ const ModalComponent = {
             }]
          },
          options: {
+            animation: {
+               onComplete: () => {
+                  delayed = true;
+               },
+               delay: (context) => {
+                  let delay = 0;
+                  if (context.type === 'data' && context.mode === 'default' && !delayed) {
+                     delay = context.dataIndex * 30 + context.datasetIndex * 10;
+                  }
+                  return delay;
+               },
+            },
             plugins: { legend: { display: false } },
             scales: {
                x: {
