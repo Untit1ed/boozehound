@@ -17,7 +17,6 @@ class Product(BaseModel):
     unitSize: Optional[int]  # Number of units in the package
     alcoholPercentage: Optional[float]
     name: Optional[str]
-    image: Optional[str]
     productType: Optional[str] = None
     tastingDescription: Optional[Union[str, bool]] = None
 
@@ -73,9 +72,6 @@ class Product(BaseModel):
         # Populate UPC
         values = cls.populate_upc_from_list_or_sku(values)
 
-        # Fix image
-        values = cls.fix_image(values)
-
         # Populate Country object
         values = cls.combine_country_fields(values)
 
@@ -114,14 +110,6 @@ class Product(BaseModel):
         return values
 
     @classmethod
-    def fix_image(cls: Type['Product'], values: dict) -> dict:
-        # Extract 'b' from the nested structure if it exists
-        if 'image' in values and values['image']:
-            values['image'] = values['image'].replace('http://', 'https://', 1).replace('.jpeg', '.jpg', 1)
-
-        return values
-
-    @classmethod
     def combine_history_fields(cls: Type['Product'], values: dict) -> dict:
         sku = values.get('sku')
         last_updated = values.pop('last_updated', None)
@@ -147,10 +135,9 @@ class Product(BaseModel):
             'category': self.category.description,
             'alcohol': self.alcohol_score(),
             'volume': self.get_numeric_volume(),
-            'price': [x.to_json_model_simple() for x in self.price_history] if self.price_history else None,
             'unit_size': self.get_numeric_unit_size(),
             'ppml': self.price_per_milliliter(),
-            'latest_price': max(self.price_history, key=lambda x: x.last_updated).to_json_model() if self.price_history else None,
+            'price': max(self.price_history, key=lambda x: x.last_updated).to_json_model() if self.price_history else None,
             'full_category': [x.to_json_model() for x in self.full_category() if x],
         })
 

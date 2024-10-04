@@ -33,7 +33,7 @@ class ProductRepository:
 
         :return: A dictionary mapping Product objects to product IDs.
         """
-        query = """SELECT sku, name, category_id, country_code, description, volume, alcohol, upc, unit_size, bcl_image_url, id, sub_category_id, class_id
+        query = """SELECT sku, name, category_id, country_code, description, volume, alcohol, upc, unit_size, id, sub_category_id, class_id
 FROM products;"""
 
         print('Loading products from DB...', end='\r')
@@ -42,7 +42,7 @@ FROM products;"""
         product_dict = {}
 
         for row in products:
-            sku, name, category_id, country_code, description, volume, alcohol, upc, unit_size, bcl_image_url, id, sub_category_id, class_id = row
+            sku, name, category_id, country_code, description, volume, alcohol, upc, unit_size, id, sub_category_id, class_id = row
 
             category = self.category_repository.categories_map.get(category_id)
             sub_category = self.category_repository.categories_map.get(sub_category_id)
@@ -60,7 +60,6 @@ FROM products;"""
                 alcoholPercentage=alcohol,
                 upc=upc,
                 unitSize=unit_size,
-                image=bcl_image_url,
                 subCategory=sub_category,
                 subSubCategory=class_name,
                 price_history=sorted(history, key=lambda x: x.last_updated) if history else None
@@ -90,10 +89,10 @@ FROM products;"""
         if self.db_helper.is_mysql:
             insert_query = """
                 INSERT INTO products (
-                    sku, name, category_id, country_code, description, volume, alcohol, upc, unit_size, bcl_image_url,
+                    sku, name, category_id, country_code, description, volume, alcohol, upc, unit_size,
                     sub_category_id, class_id
                 )
-                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
                 ON DUPLICATE KEY UPDATE
                     id = LAST_INSERT_ID(id),
                     name = VALUES(name),
@@ -106,10 +105,10 @@ FROM products;"""
         else:
             insert_query = """
                 INSERT INTO products (
-                    sku, name, category_id, country_code, description, volume, alcohol, upc, unit_size, bcl_image_url,
+                    sku, name, category_id, country_code, description, volume, alcohol, upc, unit_size,
                     sub_category_id, class_id
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (sku)
                 DO UPDATE SET
                     name = EXCLUDED.name,
@@ -126,7 +125,6 @@ FROM products;"""
                 product.sku, product.name, self.category_repository.get_or_add_category(product.category),
                 self.country_repository.get_or_add_country(product.country), product.tastingDescription, product.volume,
                 product.alcoholPercentage, product.upc, product.unitSize,
-                product.image if product.image else f"https://www.bcliquorstores.com/sites/default/files/imagecache/height400px/{product.sku}.jpg",
                 self.category_repository.get_or_add_category(product.subCategory),
                 self.category_repository.get_or_add_category(product.subSubCategory)
             )

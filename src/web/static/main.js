@@ -93,7 +93,7 @@ const ModalComponent = {
          max_score: GlobalStore.max_score,
       };
    },
-   mounted() {
+   async mounted() {
       document
          .getElementById('modalDialog')
          .addEventListener('click', this.close);
@@ -105,12 +105,13 @@ const ModalComponent = {
          document.body.classList.add('modal-is-open');
       }, 300);
 
-      priceData = this.product.price.map(entry => entry.price);
-      dateLabels = this.product.price.map(entry => new Date(entry.last_updated));
+      data = await this.fetchData(this.product.sku);
+      priceData = data.map(entry => entry.price);
+      dateLabels = data.map(entry => new Date(entry.last_updated));
 
       let delayed;
       const ctx = this.$refs.myChart.getContext('2d');
-      const chart = new Chart(ctx, {
+      new Chart(ctx, {
          type: 'line',
          data: {
             labels: dateLabels,
@@ -165,6 +166,14 @@ const ModalComponent = {
          .removeEventListener('click', this.close);
    },
    methods: {
+      async fetchData(sku) {
+         try {
+            const response = await fetch(`/api/price/${sku}`);
+            return await response.json();
+         } catch (error) {
+            console.error('Error fetching data:', error);
+         }
+      },
       handleImageError(event, category) {
          event.target.src = categoryImageMap[category] || categoryImageMap['Liquor'];
       },

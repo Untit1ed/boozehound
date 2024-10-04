@@ -2,9 +2,11 @@ import datetime
 import os
 import threading
 import time
+from typing import List
 from dotenv import load_dotenv
 from flask import Flask, jsonify
 
+from models.price_history import PriceHistory
 from services.bcl_service import BCLService
 from services.product_service import ProductService
 
@@ -42,6 +44,55 @@ def get_data():
         'products': [x.to_json_model() for x in product_service.products],
     }
     return jsonify(data)
+
+
+@app.route('/api/price/<sku>', methods=['GET'])
+def get_price(sku):
+    prices = product_service.price_history_repo.history_map[sku]
+    data = [x.to_json_model_simple() for x in prices]
+    return jsonify(data)
+
+
+def filter_prices(prices: List[PriceHistory]) -> List[PriceHistory]:
+    """
+    Filter prices to only include the first entry, last entry, entries where the price differs from the previous entry,
+    and the entry before the price change.
+
+    Args:
+    prices (list): A list of dictionaries containing 'last_updated' and 'price' keys.
+
+    Returns:
+    list: A filtered list of dictionaries.
+    """
+    if len(prices) < 2:
+        return prices
+
+    # Initialize the filtered list with the first entry
+    filtered_prices = [prices[0]]
+    # Variables to track the previous price and the index of the last added record
+    previous_price = prices[0].current_price
+    last_index = 0
+
+    # Iterate over the rest of the list
+    for i in range(1, len(prices)):
+        current_price = prices[i].current_price
+
+        # Check if the price has changed
+        if current_price != previous_price:
+            # Add the record that precedes the price change
+            if last_index != i - 1:
+                filtered_prices.append(prices[last_index])  # The last added record
+
+            # Update the last_index to the current index
+            last_index = i
+
+        previous_price = current_price
+
+    # Always add the last record
+    if prices and last_index < len(prices) - 1:
+        filtered_prices.append(prices[-1])
+
+    return filtered_prices
 
 
 def run_daily_task():

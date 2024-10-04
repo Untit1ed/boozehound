@@ -84,14 +84,14 @@
             </div>
             <div class="product-details">
                <hgroup>
-                  <p class="price" v-if="product.latest_price.sale_price !== product.latest_price.price">
-                     <span class="crossed">${{ product.latest_price.price }}</span>
-                     <mark>${{ product.latest_price.sale_price }}
+                  <p class="price" v-if="product.price.sale_price !== product.price.price">
+                     <span class="crossed">${{ product.price.price }}</span>
+                     <mark>${{ product.price.sale_price }}
                      </mark><br />
-                     <small>${{ (product.latest_price.price - product.latest_price.sale_price).toFixed(2) }} OFF (until
-                        {{printDate(product.latest_price.promotion_end_date)}})</small>
+                     <small>${{ (product.price.price - product.price.sale_price).toFixed(2) }} OFF (until
+                        {{printDate(product.price.promotion_end_date)}})</small>
                   </p>
-                  <p class="price" v-else>${{ product.latest_price.price }}</p>
+                  <p class="price" v-else>${{ product.price.price }}</p>
                   <p>
                      <a :href="product.url" target="blank">{{ product.name }}</a>
                   </p>
@@ -138,7 +138,7 @@
                         <tbody>
                           <tr>
                             <th scope="row">Price</th>
-                            <td>${{ product.latest_price.sale_price }}</td>
+                            <td>${{ product.price.sale_price }}</td>
                           </tr>
                           <tr>
                             <th scope="row">Unit size</th>
