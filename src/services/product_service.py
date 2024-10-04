@@ -49,7 +49,8 @@ class ProductService:
 
         self.product_repo = ProductRepository(db_helper, self.category_repo, self.country_repo, self.price_history_repo)
 
-        self.products = list(self.product_repo.products_map.keys())
+        self.products = sorted(list(self.product_repo.products_map.keys()),
+                               key=lambda p: p.combined_score(), reverse=True)
 
     def load_products(self, filename: str) -> None:
         with open(filename, 'r') as file:

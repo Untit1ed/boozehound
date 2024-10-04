@@ -1,3 +1,7 @@
+GlobalStore = {
+   max_score: 0
+};
+
 categoryImageMap = {
    'Wine': '/static/img/wine.png',
    'Beer': '/static/img/beer.png',
@@ -84,6 +88,11 @@ const ModalComponent = {
          required: true,
       },
    },
+   data() {
+      return {
+         max_score: GlobalStore.max_score,
+      };
+   },
    mounted() {
       document
          .getElementById('modalDialog')
@@ -115,7 +124,6 @@ const ModalComponent = {
          }, 300);
       },
       renderImage(){
-         console.log('renderImage', this.product);
          return this.product.image.replace('height400', 'height800');
       }
    },
@@ -149,6 +157,8 @@ const app = Vue.createApp({
       if (!this.products.length)
          return;
 
+      GlobalStore.max_score = this.products[0].combined_score;
+
       const filteredData = this.products.filter((item) => item.combined_score >= 1000);
       this.groupedProducts = this.groupAndSort(filteredData, 'category', 'combined_score', 1000);
       this.countries = this.getCountries(this.products);
@@ -156,7 +166,6 @@ const app = Vue.createApp({
    },
    methods: {
       openModal(product){
-         console.log('openModal', product);
          this.selectedProduct = product;
          this.isModalOpen = true;
       },
@@ -268,10 +277,10 @@ const app = Vue.createApp({
                }
 
                // Flatten subcategories
-               Object.values(current.subcategories || {}).forEach(subcat => {
-                  recurse(subcat);
+               Object.values(current.subcategories || {}).forEach(subCat => {
+                  recurse(subCat);
                   // Flatten sub-subcategories within each subcategory
-                  Object.values(subcat.subSubcategories || {}).forEach(subSubcat => recurse(subSubcat));
+                  Object.values(subCat.subSubcategories || {}).forEach(subSubCat => recurse(subSubCat));
                });
             }
 
@@ -279,10 +288,7 @@ const app = Vue.createApp({
             return result;
          }
 
-         const result = flattenObject(groupedCategories);
-
-         console.log(result);
-         return result;
+         return flattenObject(groupedCategories);
       },
       setProducts(dataToStore) {
          this.products = dataToStore

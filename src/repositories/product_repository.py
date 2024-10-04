@@ -125,7 +125,8 @@ FROM products;"""
             (
                 product.sku, product.name, self.category_repository.get_or_add_category(product.category),
                 self.country_repository.get_or_add_country(product.country), product.tastingDescription, product.volume,
-                product.alcoholPercentage, product.upc, product.unitSize, product.image,
+                product.alcoholPercentage, product.upc, product.unitSize,
+                product.image if product.image else f"https://www.bcliquorstores.com/sites/default/files/imagecache/height400px/{product.sku}.jpg",
                 self.category_repository.get_or_add_category(product.subCategory),
                 self.category_repository.get_or_add_category(product.subSubCategory)
             )

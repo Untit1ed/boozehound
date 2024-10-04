@@ -132,10 +132,34 @@
                      <p>{{ product.tastingDescription }}</p>
                   </hgroup>
                   <div>
-                        <b>Price:</b> <span>${{ product.price.sale_price }}</span><br/>
-                        <b>Unit size:</b> <span>{{ product.unit_size }}</span><br/>
-                        <b>Volume:</b> <span>{{ product.volume }}L</span><br/>
-                        <b>Alc.:</b> <span>{{ product.alcohol }}%</span><br/>
+                        <table>
+                           <tbody>
+                             <tr>
+                               <th scope="row">Price</th>
+                               <td>${{ product.price.sale_price }}</td>
+                             </tr>
+                             <tr>
+                               <th scope="row">Unit size</th>
+                               <td>{{ product.unit_size }}</td>
+                             </tr>
+                             <tr>
+                               <th scope="row">Volume</th>
+                               <td>{{ product.volume }}L</td>
+                             </tr>
+                             <tr>
+                               <th scope="row">Alc. %</th>
+                               <td>{{ product.alcohol }}%</td>
+                             </tr>
+                             <tr>
+                               <th scope="row">$/100ml</th>
+                               <td>${{ (product.ppml*100).toFixed(2) }}/100ml</td>
+                             </tr>
+                             <tr>
+                               <th scope="row">Boozecore</th>
+                               <td>{{ product.combined_score.toLocaleString() }} / {{ max_score.toLocaleString() }}</td>
+                             </tr>
+                           </tbody>
+                        </table>
                   </div>
                </div>
             </div>
