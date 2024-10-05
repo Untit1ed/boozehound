@@ -183,6 +183,7 @@ const ModalComponent = {
                   display: true,
                   position: 'right',
                   ticks: {
+                     precision: 0,
                      callback: (value) => value.toLocaleString()
                   }
                }
