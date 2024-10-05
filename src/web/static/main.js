@@ -106,8 +106,12 @@ const ModalComponent = {
       }, 300);
 
       data = await this.fetchData(this.product.sku);
-      priceData = data.map(entry => entry.price);
       dateLabels = data.map(entry => new Date(entry.last_updated));
+      priceData = data.map(entry => entry.price);
+      boozeScoreData = priceData.map((price) => {
+         const price_per_ml = price / (this.product.volume * 1000 * this.product.unit_size)
+         return Math.round((1 / price_per_ml) * (this.product.alcohol + 1));
+      });
 
       let delayed;
       const ctx = this.$refs.myChart.getContext('2d');
@@ -120,7 +124,17 @@ const ModalComponent = {
                data: priceData,
                borderColor: '#82ab00',
                backgroundColor: '#202632',
-               fill: true,
+               fill: false,
+               pointHoverRadius: 5,
+               yAxisID: 'y',
+            }, {
+               label: 'Boozescore',
+               data: boozeScoreData,
+               borderColor: '#802632',
+               backgroundColor: '#202632',
+               fill: false,
+               pointHoverRadius: 5,
+               yAxisID: 'y1',
             }]
          },
          options: {
@@ -136,10 +150,14 @@ const ModalComponent = {
                   return delay;
                },
             },
-            plugins: { legend: { display: false } },
+            plugins: {
+               legend: {
+                  display: true
+               }
+            },
             scales: {
                x: {
-                  type: 'time', // Specify that the x-axis is time
+                  type: 'time',
                   title: {
                      display: true,
                      text: 'Date'
@@ -152,8 +170,20 @@ const ModalComponent = {
                   },
                   ticks: {
                      callback: function (value) {
-                        return value.toFixed(2); // Format y-axis ticks to 2 decimal places
+                        return '$' + value.toFixed(2); // Format y-axis ticks to 2 decimal places
                      }
+                  },
+                  scaleLabel: {
+                     display: true,
+                     labelString: 'Price ($)'
+                  },
+                  position: 'left',
+               },
+               y1: {
+                  display: true,
+                  position: 'right',
+                  ticks: {
+                     callback: (value) => value.toLocaleString()
                   }
                }
             }
