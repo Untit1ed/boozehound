@@ -33,8 +33,14 @@ class ProductRepository:
 
         :return: A dictionary mapping Product objects to product IDs.
         """
-        query = """SELECT sku, name, category_id, country_code, description, volume, alcohol, upc, unit_size, id, sub_category_id, class_id
-FROM products;"""
+        query = """SELECT p.sku, name, category_id, country_code, description, volume, alcohol, upc, unit_size, id, sub_category_id, class_id
+FROM products p
+JOIN (
+    SELECT sku, MAX(last_updated) as last_update
+    FROM price_history
+    WHERE last_updated >= NOW() - INTERVAL 2 DAY
+    GROUP BY sku
+) h ON p.sku = h.sku;"""
 
         print('Loading products from DB...', end='\r')
         products = self.db_helper.execute_query(query)
