@@ -38,7 +38,7 @@ FROM products p
 JOIN (
     SELECT sku, MAX(last_updated) as last_update
     FROM price_history
-    WHERE last_updated >= NOW() - INTERVAL 2 DAY
+    WHERE last_updated >= CURRENT_DATE - 2
     GROUP BY sku
 ) h ON p.sku = h.sku;"""
 
