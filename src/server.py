@@ -5,6 +5,7 @@ import time
 from typing import List
 from dotenv import load_dotenv
 from flask import Flask, jsonify
+from flask_compress import Compress
 
 from models.price_history import PriceHistory
 from services.bcl_service import BCLService
@@ -24,6 +25,7 @@ product_service.load_repos()
 app: Flask = Flask(__name__,
                    static_folder='web/static',
                    template_folder='web/templates')
+Compress(app)
 
 
 @app.route('/favicon.ico')

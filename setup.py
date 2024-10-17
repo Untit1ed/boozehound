@@ -14,6 +14,7 @@ setup(
        'tqdm',
        'python-dateutil',
        'flask',
+       'Flask-Compress',
        'python-dotenv',
        'gunicorn'
     ],

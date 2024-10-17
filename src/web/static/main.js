@@ -266,7 +266,9 @@ const app = Vue.createApp({
          this.isModalOpen = false;
       },
       async loadData() {
-         const storedData = LZString.decompress(localStorage.getItem('ProductData'));
+         //const storedData = LZString.decompress(localStorage.getItem('ProductData'));
+         //const storedData = localStorage.getItem('ProductData');
+         const storedData = localStorage.getItem('ProductData');
 
          var storedDataOject = { products: [] };
          if (storedData) {
@@ -304,7 +306,8 @@ const app = Vue.createApp({
                timestamp: new Date().getTime()
             });
 
-            localStorage.setItem('ProductData', LZString.compress(dataToStore));
+            //localStorage.setItem('ProductData', LZString.compress(dataToStore));
+            localStorage.setItem('ProductData', dataToStore);
             console.log('Fetched.')
 
          } catch (error) {
