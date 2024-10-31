@@ -22,6 +22,10 @@ const FilterComponent = {
          required: false,
          default: null,
       },
+      'sort': {
+         type: Number,
+         required: true,
+      },
       'countries': {
          type: Array,
          required: true
@@ -33,6 +37,10 @@ const FilterComponent = {
       'updateFilters': {
          type: Function,
          required: true
+      },
+      'updateSorts': {
+         type: Function,
+         required: true
       }
    },
    template: '#filter-component',
@@ -40,7 +48,17 @@ const FilterComponent = {
       reset() {
          this.updateFilters();
       },
-      update(type, event) {
+      update_sorts(sort, event) {
+         if (event.target.checked && sort != 'none') {
+            sort = ['-' + sort, '-combined_score'];
+         } else {
+            sort = ['-combined_score'];
+         }
+
+         this.updateSorts(sort)
+      },
+      update_filters(type, event) {
+         sort = this.sort;
          if (type == 'country') {
             value = event.target.value;
          } else if (type == 'category') {
@@ -239,6 +257,7 @@ const app = Vue.createApp({
             country: '',
             category: null,
          },
+         sorts: ['-combined_score'],
          loading: true,
          isModalOpen: false,
          selectedProduct: null,
@@ -253,7 +272,7 @@ const app = Vue.createApp({
       GlobalStore.max_score = this.products[0].combined_score;
 
       const filteredData = this.products.filter((item) => item.combined_score >= 1000);
-      this.groupedProducts = this.groupAndSort(filteredData, 'category', 'combined_score', 1000);
+      this.groupedProducts = this.groupAndSort(filteredData, 'category', this.sorts, 1000);
       this.countries = this.getCountries(this.products);
       this.categories = this.getCategories(this.products);
    },
@@ -267,7 +286,6 @@ const app = Vue.createApp({
       },
       async loadData() {
          //const storedData = LZString.decompress(localStorage.getItem('ProductData'));
-         //const storedData = localStorage.getItem('ProductData');
          const storedData = localStorage.getItem('ProductData');
 
          var storedDataOject = { products: [] };
@@ -399,6 +417,11 @@ const app = Vue.createApp({
          this.filters = filters;
          this.filter();
       },
+      updateSorts(sorts = ['-combined_score']) {
+         console.log('Update sorts', sorts);
+         this.sorts = sorts;
+         this.filter();
+      },
       filter() {
          console.log(this.filters);
          var filteredProducts = this.products.filter((x) => {
@@ -420,28 +443,33 @@ const app = Vue.createApp({
          if (this.products.length == filteredProducts.length)
             filteredProducts = filteredProducts.filter((item) => item.combined_score >= 1000);
 
-         this.groupedProducts = this.groupAndSort(filteredProducts, 'category', 'combined_score', 1000);
+         this.groupedProducts = this.groupAndSort(filteredProducts, 'category', this.sorts, 1000);
       },
-      groupAndSort(data, groupByField, sortByField, topN) {
+      groupAndSort(data, groupByField, sortByFields, topN) {
          // Step 2: Group by the specified field
-         const groupedData = data.filter((x) => x.price).reduce((acc, item) => {
-            const key = item[groupByField];
-            if (!acc[key]) {
-               acc[key] = [];
-            }
+         const groupedData = data
+            .filter((x) => x.price) // Make sure all items have price provided
+            .reduce((acc, item) => {
+               const key = item[groupByField];
+               if (!acc[key]) {
+                  acc[key] = [];
+               }
 
-            acc[key].push({
-               ...item,
-               url: this.get_url(item.sku),
-               image: this.get_image(item.sku)
-            });
-            return acc;
-         }, {});
+               acc[key].push({
+                  ...item,
+                  url: this.get_url(item.sku),
+                  image: this.get_image(item.sku),
+                  price_drop: item.price.price - item.price.sale_price,
+                  price_drop_rate: (item.price.price - item.price.sale_price) / item.price.price
+               });
+               return acc;
+            }, {});
 
          // Step 3: Sort each group by the specified field and take top N results
          const result = Object.keys(groupedData).map(key => {
             const sortedGroup = groupedData[key]
-               .sort((a, b) => b[sortByField] - a[sortByField])
+               .sort(this.dynamicSort(sortByFields))
+               //.sort((a, b) => b[sortByField] - a[sortByField])
                .slice(0, topN);
 
             return {
@@ -452,16 +480,39 @@ const app = Vue.createApp({
 
          // Step 4: Sort the final results by the highest sortByField value in each group
          const sortedResult = result.sort((a, b) => {
-            const maxA = Math.max(...a.items.map(item => item[sortByField]));
-            const maxB = Math.max(...b.items.map(item => item[sortByField]));
+            const maxA = Math.max(...a.items.map(item => item[sortByFields.splice(-1)[0]]));
+            const maxB = Math.max(...b.items.map(item => item[sortByFields.splice(-1)[0]]));
             return maxB - maxA; // Sort in descending order
          });
 
          return sortedResult;
       },
       get_url: (sku) => `https://www.bcliquorstores.com/product/${sku}`,
-      get_image: (sku) => `https://www.bcliquorstores.com/sites/default/files/imagecache/height400px/${sku}.jpg`
+      get_image: (sku) => `https://www.bcliquorstores.com/sites/default/files/imagecache/height400px/${sku}.jpg`,
+      dynamicSort: (fields) => {
+         return function (a, b) {
+            for (let i = 0; i < fields.length; i++) {
+               let field = fields[i];
+               let order = 1;
 
+               // Check for descending order if specified
+               if (field[0] === '-') {
+                  order = -1;
+                  field = field.substring(1);
+               }
+
+               // Compare the two values
+               if (a[field] < b[field]) {
+                  return -1 * order;
+               } else if (a[field] > b[field]) {
+                  return 1 * order;
+               }
+            }
+
+            // If all fields are equal
+            return 0;
+         };
+      }
    }
 });
 
