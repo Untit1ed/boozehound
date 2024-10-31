@@ -1,5 +1,6 @@
 GlobalStore = {
-   max_score: 0
+   max_score: 0,
+   sorts: ['-combined_score']
 };
 
 categoryImageMap = {
@@ -50,15 +51,14 @@ const FilterComponent = {
       },
       update_sorts(sort, event) {
          if (event.target.checked && sort != 'none') {
-            sort = ['-' + sort, '-combined_score'];
+            sort = ['-' + sort].concat(GlobalStore.sorts);
          } else {
-            sort = ['-combined_score'];
+            sort = GlobalStore.sorts;
          }
 
          this.updateSorts(sort)
       },
       update_filters(type, event) {
-         sort = this.sort;
          if (type == 'country') {
             value = event.target.value;
          } else if (type == 'category') {
@@ -257,7 +257,7 @@ const app = Vue.createApp({
             country: '',
             category: null,
          },
-         sorts: ['-combined_score'],
+         sorts: [...GlobalStore.sorts],
          loading: true,
          isModalOpen: false,
          selectedProduct: null,
@@ -413,11 +413,11 @@ const app = Vue.createApp({
          this.filter();
       },
       updateFilters(filters = {}) {
-         console.log('Update filters', filters);
+         console.log('Update filters', filters, this.sorts);
          this.filters = filters;
          this.filter();
       },
-      updateSorts(sorts = ['-combined_score']) {
+      updateSorts(sorts = GlobalStore.sorts) {
          console.log('Update sorts', sorts);
          this.sorts = sorts;
          this.filter();
@@ -480,8 +480,8 @@ const app = Vue.createApp({
 
          // Step 4: Sort the final results by the highest sortByField value in each group
          const sortedResult = result.sort((a, b) => {
-            const maxA = Math.max(...a.items.map(item => item[sortByFields.splice(-1)[0]]));
-            const maxB = Math.max(...b.items.map(item => item[sortByFields.splice(-1)[0]]));
+            const maxA = Math.max(...a.items.map(item => item[sortByFields[sortByFields.length-1]]));
+            const maxB = Math.max(...b.items.map(item => item[sortByFields[sortByFields.length-1]]));
             return maxB - maxA; // Sort in descending order
          });
 

@@ -78,7 +78,7 @@
             </label>
          </div>
          <div>
-            <h3>Group By</h3>
+            <h3>Filter By</h3>
             <fieldset role="group">
                <select name="country" aria-label="Counties" required :value="country" @change="update_filters('country', $event)">
                   <option value="">All</option>
@@ -113,8 +113,9 @@
                <hgroup>
                   <p class="price" v-if="product.price.sale_price !== product.price.price">
                      <span class="crossed">${{ product.price.price }}</span>
-                     <mark>${{ product.price.sale_price }}
-                     </mark><br />
+                     <mark>${{ product.price.sale_price }}</mark>
+                     <span>({{(product.price_drop_rate*100).toFixed(1)}}%)</span>
+                     <br />
                      <small>${{ (product.price.price - product.price.sale_price).toFixed(2) }} OFF (until
                         {{printDate(product.price.promotion_end_date)}})</small>
                   </p>
