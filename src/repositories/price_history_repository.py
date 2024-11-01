@@ -26,8 +26,9 @@ class PriceHistoryRepository:
         :return: A dictionary mapping PriceHistory objects to product IDs.
         """
         query = """SELECT
-    last_updated, sku, regular_price, current_price, promotion_start_date, promotion_end_date, source
-FROM price_history;"""
+    last_updated, sku, regular_price, current_price, promotion_start_date, promotion_end_date
+FROM price_history
+WHERE last_updated >= CURRENT_DATE - 14;"""
 
         print('Loading price histories from DB...', end='\r')
         price_histories = self.db_helper.execute_query(query)
@@ -36,7 +37,7 @@ FROM price_history;"""
         price_history_dict = {}
 
         for row in price_histories:
-            last_updated, sku, regular_price, current_price, promotion_start_date, promotion_end_date, source = row
+            last_updated, sku, regular_price, current_price, promotion_start_date, promotion_end_date = row
 
             history = PriceHistory(
                 sku=sku,
