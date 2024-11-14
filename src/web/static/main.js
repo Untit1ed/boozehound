@@ -271,12 +271,32 @@ const app = Vue.createApp({
 
       GlobalStore.max_score = this.products[0].combined_score;
 
-      const filteredData = this.products.filter((item) => item.combined_score >= 1000);
-      this.groupedProducts = this.groupAndSort(filteredData, 'category', this.sorts, 1000);
+      //const filteredData = this.products.filter((item) => item.combined_score >= 1000);
+      //this.groupedProducts = this.groupAndSort(filteredData, 'category', this.sorts, 1000);
+      this.filter();
       this.countries = this.getCountries(this.products);
       this.categories = this.getCategories(this.products);
    },
+   created() {
+      this.getQueryParams();
+   },
    methods: {
+      getQueryParams() {
+         const params = new URLSearchParams(window.location.search);
+         this.filters.category = params.get('category') || null;
+         this.filters.country = params.get('country') || null;
+      },
+      updateQueryParams() {
+         const params = new URLSearchParams();
+         if (this.filters.category) {
+            params.set('category', this.filters.category);
+         }
+         if (this.filters.country) {
+            params.set('country', this.filters.country);
+         }
+         const newUrl = `${window.location.pathname}?${params.toString()}`;
+         window.history.replaceState({}, '', newUrl);
+      },
       openModal(product) {
          this.selectedProduct = product;
          this.isModalOpen = true;
@@ -410,11 +430,13 @@ const app = Vue.createApp({
       },
       setFilter(type, id) {
          this.filters = { ...{ "country": "", "category": "" }, ...this.filters, [type]: id };
+         this.updateQueryParams();
          this.filter();
       },
       updateFilters(filters = {}) {
          console.log('Update filters', filters, this.sorts);
          this.filters = filters;
+         this.updateQueryParams();
          this.filter();
       },
       updateSorts(sorts = GlobalStore.sorts) {

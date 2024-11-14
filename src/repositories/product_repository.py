@@ -25,9 +25,9 @@ class ProductRepository:
         self.category_repository: CategoryRepository = category_repository
         self.country_repository: CountryRepository = country_repository
         self.history_repository: PriceHistoryRepository = history_repository
-        self.products_map: Dict[Product, int] = self.load_products()
+        self.products_map: Dict[str, Product] = self.load_products()
 
-    def load_products(self) -> Dict[Product, int]:
+    def load_products(self) -> Dict[str, Product]:
         """
         Load all products from the database into an in-memory dictionary.
 
@@ -71,7 +71,7 @@ JOIN (
                 price_history=sorted(history, key=lambda x: x.last_updated) if history else None
             )
 
-            product_dict[product] = id
+            product_dict[product.sku] = product
 
         return product_dict
 
@@ -88,8 +88,8 @@ JOIN (
         """
 
         # Check if the product is already in memory
-        if product in self.products_map:
-            return self.products_map[product]
+        if product.sku in self.products_map:
+            return product.sku
 
         # Insert category into the database
         if self.db_helper.is_mysql:
@@ -137,7 +137,7 @@ JOIN (
         )
 
         # Update the in-memory dictionary
-        self.products_map[product] = product.upc
+        self.products_map[product.sku] = product
 
         print(f"{(product.name, product.sku, product.upc)} product was inserted with id {new_product_id}.")
 
