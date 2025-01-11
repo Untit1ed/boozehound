@@ -74,7 +74,7 @@ WHERE last_updated >= CURRENT_DATE - 14;"""
                 last_updated, sku, regular_price, current_price, promotion_start_date, promotion_end_date, source
             ) VALUES(%s, %s, %s, %s, %s, %s, 'bcl');
         """
-        new_id = self.db_helper.insert_query(
+        self.db_helper.insert_query(
             insert_query,
             (
                 history.last_updated, history.sku, history.regular_price, history.current_price,
@@ -86,7 +86,7 @@ WHERE last_updated >= CURRENT_DATE - 14;"""
         # Update the in-memory dictionary
         self.history_map.setdefault(history.sku, []).append(history)
 
-        print(f"{(history.sku)} history was inserted with id {new_id}.")
+        print(f"{(history.sku)} history was inserted.")
 
         return history.sku
 
