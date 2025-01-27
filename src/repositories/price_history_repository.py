@@ -30,8 +30,7 @@ class PriceHistoryRepository:
         """
         query = """SELECT
     last_updated, sku, regular_price, current_price, promotion_start_date, promotion_end_date
-FROM price_history
-WHERE last_updated >= CURRENT_DATE - 14;"""
+FROM price_history"""
 
         print('Loading price histories from DB...', end='\r')
         price_histories = self.db_helper.execute_query(query)
@@ -39,7 +38,7 @@ WHERE last_updated >= CURRENT_DATE - 14;"""
 
         price_history_dict = {}
 
-        for row in price_histories:
+        for row in self.filter_prices(price_histories):
             last_updated, sku, regular_price, current_price, promotion_start_date, promotion_end_date = row
 
             history = PriceHistory(
@@ -54,6 +53,28 @@ WHERE last_updated >= CURRENT_DATE - 14;"""
             price_history_dict.setdefault(sku, []).append(history)
 
         return price_history_dict
+
+    def filter_prices(self, prices) -> List[PriceHistory]:
+
+        if len(prices) < 2:
+            return prices
+
+        # Initialize result list and add the first record
+        result = [prices[0]]
+        previous_record = prices[0]
+
+        # Iterate through the data starting from the second record
+        for current_record in prices[1:]:
+            if current_record[3] != previous_record[3]:
+                result.append(previous_record)
+                result.append(current_record)
+            previous_record = current_record
+
+        # Add the last record if it's not already in the result
+        if prices[-1] not in result:
+            result.append(prices[-1])
+
+        return result
 
     def get_or_add_price_history(
         self,
