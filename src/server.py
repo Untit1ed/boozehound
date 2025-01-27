@@ -69,32 +69,22 @@ def filter_prices(prices: List[PriceHistory]) -> List[PriceHistory]:
     if len(prices) < 2:
         return prices
 
-    # Initialize the filtered list with the first entry
-    filtered_prices = [prices[0]]
-    # Variables to track the previous price and the index of the last added record
-    previous_price = prices[0].current_price
-    last_index = 0
+    # Initialize result list and add the first record
+    result = [prices[0]]
+    previous_record = prices[0]
 
-    # Iterate over the rest of the list
-    for i in range(1, len(prices)):
-        current_price = prices[i].current_price
+    # Iterate through the data starting from the second record
+    for current_record in prices[1:]:
+        if current_record.current_price != previous_record.current_price:
+            result.append(previous_record)
+            result.append(current_record)
+        previous_record = current_record
 
-        # Check if the price has changed
-        if current_price != previous_price:
-            # Add the record that precedes the price change
-            if last_index != i - 1:
-                filtered_prices.append(prices[last_index])  # The last added record
+    # Add the last record if it's not already in the result
+    if prices[-1] not in result:
+        result.append(prices[-1])
 
-            # Update the last_index to the current index
-            last_index = i
-
-        previous_price = current_price
-
-    # Always add the last record
-    if prices and last_index < len(prices) - 1:
-        filtered_prices.append(prices[-1])
-
-    return filtered_prices
+    return result
 
 
 def run_daily_task():

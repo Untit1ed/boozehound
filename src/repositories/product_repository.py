@@ -1,4 +1,5 @@
-from typing import Dict
+from typing import Dict, Optional
+import logging
 
 from db_helper import DbHelper
 
@@ -38,7 +39,7 @@ FROM products p
 JOIN (
     SELECT sku, MAX(last_updated) as last_update
     FROM price_history
-    WHERE last_updated >= CURRENT_DATE - 2
+    WHERE last_updated >= CURRENT_DATE - 7  -- Changed from 2 to 7 days
     GROUP BY sku
 ) h ON p.sku = h.sku;"""
 
@@ -48,31 +49,61 @@ JOIN (
         product_dict = {}
 
         for row in products:
-            sku, name, category_id, country_code, description, volume, alcohol, upc, unit_size, id, sub_category_id, class_id = row
+            try:
+                sku, name, category_id, country_code, description, volume, alcohol, upc, unit_size, id, sub_category_id, class_id = row
 
-            category = self.category_repository.categories_map.get(category_id)
-            sub_category = self.category_repository.categories_map.get(sub_category_id)
-            class_name = self.category_repository.categories_map.get(class_id)
-            country = self.country_repository.countries_map.get(country_code)
-            history = self.history_repository.history_map.get(sku)
+                if not sku or not name:
+                    logging.warning(f"Skipping product with missing required fields: SKU={sku}, name={name}")
+                    continue
 
-            product = Product(
-                sku=sku,
-                name=name,
-                category=category,
-                country=country,
-                tastingDescription=description,
-                volume=volume,
-                alcoholPercentage=alcohol,
-                upc=upc,
-                unitSize=unit_size,
-                subCategory=sub_category,
-                subSubCategory=class_name,
-                price_history=sorted(history, key=lambda x: x.last_updated) if history else None
-            )
+                # Get category with error handling
+                category = self.category_repository.categories_map.get(category_id)
+                if not category and category_id:
+                    logging.warning(f"Missing category {category_id} for product {sku}")
 
-            product_dict[product.sku] = product
+                # Get sub-category with error handling
+                sub_category = self.category_repository.categories_map.get(sub_category_id)
+                if not sub_category and sub_category_id:
+                    logging.warning(f"Missing sub-category {sub_category_id} for product {sku}")
 
+                # Get class with error handling
+                class_name = self.category_repository.categories_map.get(class_id)
+                if not class_name and class_id:
+                    logging.warning(f"Missing class {class_id} for product {sku}")
+
+                # Get country with error handling
+                country = self.country_repository.countries_map.get(country_code)
+                if not country and country_code:
+                    logging.warning(f"Missing country {country_code} for product {sku}")
+
+                # Get price history with error handling
+                history = self.history_repository.history_map.get(sku)
+                if not history:
+                    logging.warning(f"Missing price history for product {sku}")
+                    continue  # Skip products without price history
+
+                product = Product(
+                    sku=sku,
+                    name=name,
+                    category=category,
+                    country=country,
+                    tastingDescription=description,
+                    volume=volume,
+                    alcoholPercentage=alcohol,
+                    upc=upc,
+                    unitSize=unit_size,
+                    subCategory=sub_category,
+                    subSubCategory=class_name,
+                    price_history=sorted(history, key=lambda x: x.last_updated) if history else None
+                )
+
+                product_dict[product.sku] = product
+
+            except Exception as e:
+                logging.error(f"Error processing product row: {row}. Error: {str(e)}")
+                continue
+
+        logging.info(f"Successfully loaded {len(product_dict)} valid products")
         return product_dict
 
     def get_or_add_product(
