@@ -51,7 +51,7 @@ def get_data():
 @app.route('/api/price/<sku>', methods=['GET'])
 def get_price(sku):
     prices = product_service.price_history_repo.history_map[sku]
-    data = [x.to_json_model_simple() for x in prices]
+    data = [x.to_json_model_simple() for x in filter_prices(prices)]
     return jsonify(data)
 
 
