@@ -51,40 +51,8 @@ def get_data():
 @app.route('/api/price/<sku>', methods=['GET'])
 def get_price(sku):
     prices = product_service.price_history_repo.history_map[sku]
-    data = [x.to_json_model_simple() for x in filter_prices(prices)]
+    data = [x.to_json_model_simple() for x in prices]
     return jsonify(data)
-
-
-def filter_prices(prices: List[PriceHistory]) -> List[PriceHistory]:
-    """
-    Filter prices to only include the first entry, last entry, entries where the price differs from the previous entry,
-    and the entry before the price change.
-
-    Args:
-    prices (list): A list of dictionaries containing 'last_updated' and 'price' keys.
-
-    Returns:
-    list: A filtered list of dictionaries.
-    """
-    if len(prices) < 2:
-        return prices
-
-    # Initialize result list and add the first record
-    result = [prices[0]]
-    previous_record = prices[0]
-
-    # Iterate through the data starting from the second record
-    for current_record in prices[1:]:
-        if current_record.current_price != previous_record.current_price:
-            result.append(previous_record)
-            result.append(current_record)
-        previous_record = current_record
-
-    # Add the last record if it's not already in the result
-    if prices[-1] not in result:
-        result.append(prices[-1])
-
-    return result
 
 
 def run_daily_task():
