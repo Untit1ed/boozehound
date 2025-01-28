@@ -98,7 +98,7 @@ def start():
 
 if __name__ == 'src.server':
     start()
-if __name__ == '__main__':
+elif __name__ == '__main__':
     start()
     # product_service.load_products(JSON_LOC)
     if os.getenv('ENV') == 'local':

@@ -1,4 +1,4 @@
-from typing import Any, Optional, Tuple
+from typing import Any, Optional, Tuple, List
 
 import pymysql
 import psycopg2
@@ -72,3 +72,21 @@ class DbHelper:
             connection.close()
 
         return result
+
+    def bulk_insert_query(self, query: str, params_list: List[Tuple]) -> None:
+        """
+        Executes a bulk insert SQL query.
+
+        :param query: SQL query string template for the bulk insert.
+        :param params_list: List of parameter tuples to be inserted.
+        """
+        if not params_list:
+            return
+
+        connection = self.connect()
+        try:
+            with connection.cursor() as cursor:
+                cursor.executemany(query, params_list)
+                connection.commit()
+        finally:
+            connection.close()

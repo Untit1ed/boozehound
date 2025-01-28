@@ -1,4 +1,6 @@
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Optional, Set, Tuple
+from itertools import groupby
+from operator import itemgetter
 import logging
 
 from db_helper import DbHelper
@@ -54,27 +56,47 @@ FROM price_history"""
 
         return price_history_dict
 
-    def filter_prices(self, prices) -> List[PriceHistory]:
+    def filter_prices(self, prices: List[Tuple]) -> List[Tuple]:
+        """
+        Filter price history to keep only records where price changes occur.
+        Groups by SKU first, then identifies price change points.
 
+        :param prices: List of price history tuples (last_updated, sku, regular_price, current_price, promo_start, promo_end)
+        :return: Filtered list containing only price change events and boundary points
+        """
         if len(prices) < 2:
             return prices
 
-        # Initialize result list and add the first record
-        result = [prices[0]]
-        previous_record = prices[0]
+        # Sort by SKU and date
+        sorted_prices = sorted(prices, key=lambda x: (x[1], x[0]))  # sort by sku, then date
+        filtered_prices = []
 
-        # Iterate through the data starting from the second record
-        for current_record in prices[1:]:
-            if current_record[3] != previous_record[3]:
-                result.append(previous_record)
-                result.append(current_record)
-            previous_record = current_record
+        # Group by SKU
+        for sku, sku_group in groupby(sorted_prices, key=itemgetter(1)):
+            sku_prices = list(sku_group)
 
-        # Add the last record if it's not already in the result
-        if prices[-1] not in result:
-            result.append(prices[-1])
+            if not sku_prices:
+                continue
 
-        return result
+            # Always keep the first and last price points for each SKU
+            filtered_prices.append(sku_prices[0])
+
+            # Add points where price changes
+            for i in range(1, len(sku_prices)):
+                curr_price = sku_prices[i][3]  # current_price is at index 3
+                prev_price = sku_prices[i-1][3]
+
+                if curr_price != prev_price:
+                    # Add both the last price before change and first price after change
+                    filtered_prices.append(sku_prices[i-1])
+                    filtered_prices.append(sku_prices[i])
+
+            # Add last price point if not already added
+            if sku_prices[-1] not in filtered_prices:
+                filtered_prices.append(sku_prices[-1])
+
+        # Sort final result by date for chronological order
+        return sorted(filtered_prices, key=itemgetter(0))
 
     def get_or_add_price_history(
         self,
