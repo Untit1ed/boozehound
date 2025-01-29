@@ -482,7 +482,8 @@ const app = Vue.createApp({
                   url: this.get_url(item.sku),
                   image: this.get_image(item.sku),
                   price_drop: item.price.price - item.price.sale_price,
-                  price_drop_rate: (item.price.price - item.price.sale_price) / item.price.price
+                  price_drop_rate: (item.price.price - item.price.sale_price) / item.price.price,
+                  actual_country: window.UPC.getCountryFromUPC(item.upc),
                });
                return acc;
             }, {});

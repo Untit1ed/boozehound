@@ -128,7 +128,7 @@ class Product(BaseModel):
         return values
 
     def to_json_model(self) -> dict[str, Any]:
-        data = self.model_dump(include={'name', 'sku', 'tastingDescription'})
+        data = self.model_dump(include={'name', 'sku', 'upc', 'tastingDescription'})
         data.update({
             'combined_score': int(self.combined_score()),
             'country': self.country.to_json_model(),

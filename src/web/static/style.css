@@ -118,6 +118,12 @@ header {
          top: 5px;
          right: 5px;
       }
+
+      span{
+         position: absolute;
+         bottom: 5px;
+         right: 5px;
+      }
    }
 
    .math {
