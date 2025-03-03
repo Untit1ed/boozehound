@@ -1,4 +1,5 @@
-body, .modal-is-open {
+body,
+.modal-is-open {
    height: 100%;
    overflow-y: scroll;
 }
@@ -23,7 +24,6 @@ button {
 }
 
 header {
-
    display: flex;
    align-items: center;
    gap: 1rem;
@@ -32,19 +32,16 @@ header {
       min-width: 142px;
       min-height: 100px;
       height: auto;
+
+      img {
+         height: 100px;
+      }
    }
 
    hgroup {
       margin: 0;
    }
-
-   a {
-      img {
-         height: 100px;
-      }
-   }
 }
-
 
 #app {
    position: relative;
@@ -108,6 +105,10 @@ header {
          cursor: pointer;
       }
 
+      a {
+         text-decoration: none;
+      }
+
       img {
          max-height: 100px;
          transition: transform 0.3s ease-in-out;
@@ -119,7 +120,7 @@ header {
          right: 5px;
       }
 
-      span{
+      span {
          position: absolute;
          bottom: 5px;
          right: 5px;
@@ -147,6 +148,15 @@ header {
    }
 }
 
+
+.grid.item:hover {
+   background-color: rgba(102, 102, 102, 0.1);
+
+   .image-container img {
+      transform: scale(1.25);
+   }
+}
+
 .modal-content {
    .image-container {
       position: relative;
@@ -159,19 +169,4 @@ header {
       align-items: center;
       background-color: white;
    }
-
-   .grid.item:hover {
-      background-color: rgba(102, 102, 102, 0.1);
-
-      .image-container img {
-         transform: scale(1.25);
-      }
-
-      .image-container img {}
-
-
-
-      .image-container {
-         background-image: attr(data-src url);
-      }
-   }
+}

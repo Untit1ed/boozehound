@@ -1,15 +1,15 @@
-GlobalStore = {
+const GlobalStore = Object.freeze({
    max_score: 0,
    sorts: ['-combined_score']
-};
+});
 
-categoryImageMap = {
+const categoryImageMap = Object.freeze({
    'Wine': '/static/img/wine.png',
    'Beer': '/static/img/beer.png',
    'Coolers & Ciders': '/static/img/beer.png',
    'Spirits': '/static/img/liquor.png',
    'Liquor': '/static/img/liquor.png',
-};
+});
 
 const FilterComponent = {
    props: {
@@ -22,6 +22,11 @@ const FilterComponent = {
          type: Number,
          required: false,
          default: null,
+      },
+      'search': {
+         type: String,
+         required: false,
+         default: "",
       },
       'sort': {
          type: Number,
@@ -63,10 +68,12 @@ const FilterComponent = {
             value = event.target.value;
          } else if (type == 'category') {
             value = event.target.value != "" ? Number(event.target.value) : null;
+         } else if(type == 'search') {
+            value = event.target.value;
          }
 
-         this.updateFilters({ ...{ 'country': this.country, 'category': this.category }, [type]: value });
-      }
+         this.updateFilters({ ...{ 'country': this.country, 'category': this.category, 'search': this.search }, [type]: value });
+      },
    }
 };
 
@@ -218,6 +225,9 @@ const ModalComponent = {
       async fetchData(sku) {
          try {
             const response = await fetch(`/api/price/${sku}`);
+if (!response.ok) {
+               throw new Error(`HTTP error! status: ${response.status}`);
+            }
             return await response.json();
          } catch (error) {
             console.error('Error fetching data:', error);
@@ -256,6 +266,7 @@ const app = Vue.createApp({
          filters: {
             country: '',
             category: null,
+            search: '',
          },
          sorts: [...GlobalStore.sorts],
          loading: true,
@@ -285,6 +296,7 @@ const app = Vue.createApp({
          const params = new URLSearchParams(window.location.search);
          this.filters.category = params.get('category') || null;
          this.filters.country = params.get('country') || null;
+         this.filters.search = params.get('search') || null;
       },
       updateQueryParams() {
          const params = new URLSearchParams();
@@ -293,6 +305,9 @@ const app = Vue.createApp({
          }
          if (this.filters.country) {
             params.set('country', this.filters.country);
+         }
+         if(this.filters.search) {
+            params.set('search', this.filters.search);
          }
          const newUrl = `${window.location.pathname}?${params.toString()}`;
          window.history.replaceState({}, '', newUrl);
@@ -429,7 +444,7 @@ const app = Vue.createApp({
          this.loading = false;
       },
       setFilter(type, id) {
-         this.filters = { ...{ "country": "", "category": "" }, ...this.filters, [type]: id };
+         this.filters = { ...{ "country": "", "category": "", "search": "" }, ...this.filters, [type]: id };
          this.updateQueryParams();
          this.filter();
       },
@@ -447,18 +462,23 @@ const app = Vue.createApp({
       filter() {
          console.log(this.filters);
          var filteredProducts = this.products.filter((x) => {
-            result = true;
+            let result = true;
+            const filters = this.filters;
 
-            for (filter_type in this.filters) {
-               if (!this.filters[filter_type])
-                  continue;
-
-               if (filter_type == 'category')
-                  result = result && x.full_category.some((category) => category.id == this.filters[filter_type]);
-               if (filter_type == 'country')
-                  result = result && x.country.code == this.filters[filter_type];
+            if (filters.category) {
+               result = result && x.full_category.some((category) => category.id == filters.category);
             }
-
+            if (filters.country) {
+               result = result && x.country.code == filters.country;
+            }
+            if (filters.search) {
+               const query = filters.search.toLowerCase();
+               result = result && (
+                  x.name.toLowerCase().includes(query) ||
+                  x.full_category.some((category) => category.description.toLowerCase().includes(query)) ||
+                  x.upc.startsWith(query, 1)
+               );
+            }
             return result;
          });
 

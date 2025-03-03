@@ -2,12 +2,10 @@ import datetime
 import os
 import threading
 import time
-from typing import List
 from dotenv import load_dotenv
 from flask import Flask, jsonify
 from flask_compress import Compress
 
-from models.price_history import PriceHistory
 from services.bcl_service import BCLService
 from services.product_service import ProductService
 

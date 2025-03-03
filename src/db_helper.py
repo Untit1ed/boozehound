@@ -1,3 +1,4 @@
+import logging
 from typing import Any, Optional, Tuple, List
 
 import pymysql
@@ -13,6 +14,7 @@ class DbHelper:
         """
         self.config = config
         self.is_mysql = True
+        self.logger = logging.getLogger(__name__)
 
     def connect(self) -> pymysql.connections.Connection:
         """
@@ -36,6 +38,7 @@ class DbHelper:
         :param fetch_one: If True, fetches a single record; otherwise, fetches all records.
         :return: The query result. If fetch_one is True, returns a single record; otherwise, returns a list of records.
         """
+        self.logger.debug(f"Executing query: {query[:100]}...")
         connection = self.connect()
         result = None
 
@@ -47,6 +50,9 @@ class DbHelper:
                 else:
                     result = cursor.fetchall()
                 connection.commit()
+        except Exception as e:
+            self.logger.error(f"Database error: {str(e)}")
+            raise
         finally:
             connection.close()
 

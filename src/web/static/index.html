@@ -2,7 +2,7 @@
 <html data-theme="dark" manifest="boozehound.appcache">
 
 <head>
-   <title>bcl</title>
+   <title>BoozeHound - Sniffing Out the Best Deals on Your Favorite Spirits!</title>
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <meta name="color-scheme" content="light dark">
    <link rel="icon" href="/favicon.ico" type="image/x-icon">
@@ -32,6 +32,7 @@
          :sort.sync="sorts.length"
          :country.sync="filters.country"
          :category.sync="filters.category"
+         :search.sync="filters.search"
          :countries="countries"
          :categories="categories"
          :update-filters="updateFilters"
@@ -60,42 +61,60 @@
    </footer>
 
    <script type="text/x-template" id="filter-component">
-      <div class="grid">
-         <div>
-            <h3>Sort By</h3>
-            <fieldset>
-               <input name="top_drop" type="radio" id="none"  @change="update_sorts('none', $event)" checked/>
-               <label htmlFor="none">Default</label>
-               <input name="top_drop" type="radio" id="price_drop_rate" @change="update_sorts('price_drop_rate', $event)"/>
-               <label htmlFor="price_drop_rate">Top Drops (relative)</label>
-               <input name="top_drop" type="radio" id="price_drop" @change="update_sorts('price_drop', $event)"/>
-               <label htmlFor="price_drop">Top Drops</label>
-            </fieldset>
+      <form @submit.prevent class="filter-form">
+         <div class="grid">
+            <div>
+               <h3>Sort By</h3>
+               <fieldset>
+                  <input name="top_drop" type="radio" id="none"  @change="update_sorts('none', $event)" checked/>
+                  <label htmlFor="none">Default</label>
+                  <input name="top_drop" type="radio" id="price_drop_rate" @change="update_sorts('price_drop_rate', $event)"/>
+                  <label htmlFor="price_drop_rate">Top Drops (%)</label>
+                  <input name="top_drop" type="radio" id="price_drop" @change="update_sorts('price_drop', $event)"/>
+                  <label htmlFor="price_drop">Top Drops ($)</label>
+                  <input name="top_drop" type="radio" id="alc_rate" @change="update_sorts('alcohol', $event)"/>
+                  <label htmlFor="price_drop">Alc.%</label>
+                  <input name="top_drop" type="radio" id="ppml" @change="update_sorts('ppml', $event)"/>
+                  <label htmlFor="price_drop">$/ml</label>
+               </fieldset>
 
-            <label>
-               <input role="switch" type="checkbox" disabled checked/>
-               Booze Score
-            </label>
+               <label>
+                  <input role="switch" type="checkbox" disabled checked/>
+                  Booze Score
+               </label>
+            </div>
+            <div>
+               <h3>Search</h3>
+               <fieldset>
+                  <input type="search"
+                     placeholder="Search..."
+                     aria-label="Search"
+                     :key="search"
+                     :value="search"
+                     @search="update_filters('search', $event)"
+                     />
+               </fieldset>
+            </div>
+            <div>
+               <h3>Filter By</h3>
+               <fieldset role="group">
+                  <select name="country" aria-label="Counties" required :value="country" @change="update_filters('country', $event)">
+                     <option value="">All</option>
+                     <option v-for="country in countries" :key="country.code" :value="country.code">
+                        {{ country.name }}
+                     </option>
+                  </select>
+                  <select name="category" aria-label="Categories" required :value="category" @change="update_filters('category', $event)">
+                     <option value="">All</option>
+                     <option v-for="category in categories" :key="category.id" :value="category.id">
+                        {{ category.description }}
+                     </option>
+                  </select>
+                  <button class="secondary" type="reset" @click="reset()">Reset</button>
+               </fieldset>
+            </div>
          </div>
-         <div>
-            <h3>Filter By</h3>
-            <fieldset role="group">
-               <select name="country" aria-label="Counties" required :value="country" @change="update_filters('country', $event)">
-                  <option value="">All</option>
-                  <option v-for="country in countries" :key="country.code" :value="country.code">
-                     {{ country.name }}
-                  </option>
-               </select>
-               <select name="category" aria-label="Categories" required :value="category" @change="update_filters('category', $event)">
-                  <option value="">All</option>
-                  <option v-for="category in categories" :key="category.id" :value="category.id">
-                     {{ category.description }}
-                  </option>
-               </select>
-               <button class="secondary" type="reset" @click="reset()">Reset</button>
-            </fieldset>
-         </div>
-      </div>
+      </form>
    </script>
 
    <script type="text/x-template" id="item-component">
