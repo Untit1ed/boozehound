@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 import logging
 
 from db_helper import DbHelper
@@ -39,6 +39,7 @@ FROM products p
 JOIN (
     SELECT sku, MAX(last_updated) as last_update
     FROM price_history
+    WHERE last_updated >= CURRENT_DATE - 7
     GROUP BY sku
 ) h ON p.sku = h.sku;"""
 
@@ -173,3 +174,77 @@ JOIN (
         print(f"{(product.name, product.sku, product.upc)} product was inserted.")
 
         return product.sku
+
+    def bulk_add_products(self, products: List[Product]) -> None:
+        """
+        Bulk insert or update multiple products efficiently.
+
+        :param products: List of products to insert or update
+        """
+        params_list = []
+        processed_skus = set()
+
+        for product in products:
+            if not product.sku or not product.name:
+                logging.warning(f"Skipping product with missing required fields: SKU={product.sku}, name={product.name}")
+                continue
+
+            # Skip if product already exists in memory
+            if product.sku in processed_skus or product.sku in self.products_map:
+                continue
+
+            params_list.append((
+                product.sku,
+                product.name,
+                self.category_repository.get_or_add_category(product.category),
+                self.country_repository.get_or_add_country(product.country),
+                product.tastingDescription,
+                product.volume,
+                product.alcoholPercentage,
+                product.upc,
+                product.unitSize,
+                self.category_repository.get_or_add_category(product.subCategory),
+                self.category_repository.get_or_add_category(product.subSubCategory)
+            ))
+            processed_skus.add(product.sku)
+
+            # Update in-memory map
+            self.products_map[product.sku] = product
+
+        if params_list:
+            if self.db_helper.is_mysql:
+                insert_query = """
+                    INSERT INTO products (
+                        sku, name, category_id, country_code, description,
+                        volume, alcohol, upc, unit_size,
+                        sub_category_id, class_id
+                    )
+                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                    ON DUPLICATE KEY UPDATE
+                        name = VALUES(name),
+                        upc = VALUES(upc),
+                        category_id = VALUES(category_id),
+                        sub_category_id = VALUES(sub_category_id),
+                        class_id = VALUES(class_id),
+                        date_updated = now()
+                """
+            else:
+                insert_query = """
+                    INSERT INTO products (
+                        sku, name, category_id, country_code, description,
+                        volume, alcohol, upc, unit_size,
+                        sub_category_id, class_id
+                    )
+                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                    ON CONFLICT (sku)
+                    DO UPDATE SET
+                        name = EXCLUDED.name,
+                        upc = EXCLUDED.upc,
+                        category_id = EXCLUDED.category_id,
+                        sub_category_id = EXCLUDED.sub_category_id,
+                        class_id = EXCLUDED.class_id,
+                        date_updated = NOW()
+                """
+
+            self.db_helper.bulk_insert_query(insert_query, params_list)
+            logging.info(f"Bulk inserted/updated {len(params_list)} products")

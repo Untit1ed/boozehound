@@ -74,7 +74,7 @@
                   <label htmlFor="price_drop">Top Drops ($)</label>
                   <input name="top_drop" type="radio" id="alc_rate" @change="update_sorts('alcohol', $event)"/>
                   <label htmlFor="price_drop">Alc.%</label>
-                  <input name="top_drop" type="radio" id="ppml" @change="update_sorts('ppml', $event)"/>
+                  <input name="top_drop" type="radio" id="ppml" @change="update_sorts('-ppml', $event)"/>
                   <label htmlFor="price_drop">$/ml</label>
                </fieldset>
 
