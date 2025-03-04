@@ -53,7 +53,7 @@ class ProductService:
                                key=lambda p: p.combined_score(), reverse=True)
 
     def load_products(self, filename: str) -> None:
-        with open(filename, 'r') as file:
+        with open(filename, 'r', encoding="utf8") as file:
             json_data = json.load(file)
 
         hits = json_data.get("hits", {}).get("hits", [])

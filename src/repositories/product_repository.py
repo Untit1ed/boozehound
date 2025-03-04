@@ -34,12 +34,11 @@ class ProductRepository:
 
         :return: A dictionary mapping Product objects to product IDs.
         """
-        query = """SELECT p.sku, name, category_id, country_code, description, volume, alcohol, upc, unit_size, id, sub_category_id, class_id
+        query = """SELECT p.sku, name, category_id, country_code, description, volume, alcohol, upc, unit_size, id, sub_category_id, class_id, last_update >= CURRENT_DATE - 2 as is_active
 FROM products p
 JOIN (
     SELECT sku, MAX(last_updated) as last_update
     FROM price_history
-    WHERE last_updated >= CURRENT_DATE - 2
     GROUP BY sku
 ) h ON p.sku = h.sku;"""
 
@@ -50,7 +49,7 @@ JOIN (
 
         for row in products:
             try:
-                sku, name, category_id, country_code, description, volume, alcohol, upc, unit_size, id, sub_category_id, class_id = row
+                sku, name, category_id, country_code, description, volume, alcohol, upc, unit_size, id, sub_category_id, class_id, is_active = row
 
                 if not sku or not name:
                     logging.warning(f"Skipping product with missing required fields: SKU={sku}, name={name}")
@@ -94,7 +93,8 @@ JOIN (
                     unitSize=unit_size,
                     subCategory=sub_category,
                     subSubCategory=class_name,
-                    price_history=sorted(history, key=lambda x: x.last_updated) if history else None
+                    price_history=sorted(history, key=lambda x: x.last_updated) if history else None,
+                    is_active=is_active
                 )
 
                 product_dict[product.sku] = product
@@ -156,7 +156,7 @@ JOIN (
                     date_updated = NOW();
             """
 
-        new_product_id = self.db_helper.insert_query(
+        self.db_helper.insert_query(
             insert_query,
             (
                 product.sku, product.name, self.category_repository.get_or_add_category(product.category),
@@ -170,6 +170,6 @@ JOIN (
         # Update the in-memory dictionary
         self.products_map[product.sku] = product
 
-        print(f"{(product.name, product.sku, product.upc)} product was inserted with id {new_product_id}.")
+        print(f"{(product.name, product.sku, product.upc)} product was inserted.")
 
-        return new_product_id
+        return product.sku

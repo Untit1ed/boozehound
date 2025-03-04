@@ -17,8 +17,7 @@ JSON_LOC = "data/products.json"
 
 print(f'WEB STARTING {__name__}')
 print(f'{DB_URL}')
-product_service: ProductService = ProductService(DB_URL)
-product_service.load_repos()
+product_service: ProductService = ProductService(DB_URL, True)
 
 app: Flask = Flask(__name__,
                    static_folder='web/static',
@@ -84,7 +83,6 @@ def reload():
     return jsonify({"message": "Reload task started!"}), 202
 
 
-@app.route('/start', methods=['GET'])
 def start():
     thread = threading.Thread(target=run_daily_task)
     thread.start()
@@ -94,9 +92,9 @@ def start():
         pass
 
 
-if __name__ == 'src.server':
-    start()
-elif __name__ == '__main__':
+if __name__ == '__main__':
+    product_service.load_repos()
+
     start()
     # product_service.load_products(JSON_LOC)
     if os.getenv('ENV') == 'local':

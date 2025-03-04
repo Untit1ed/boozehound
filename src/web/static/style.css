@@ -170,3 +170,7 @@ header {
       background-color: white;
    }
 }
+
+.inactive{
+   opacity: 0.5;
+}

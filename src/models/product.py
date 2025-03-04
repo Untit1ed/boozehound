@@ -25,6 +25,7 @@ class Product(BaseModel):
     subCategory: Optional[Category]
     subSubCategory: Optional[Category]
     price_history: Optional[List[PriceHistory]] = None
+    is_active: Optional[bool] = True
 
     def get_numeric_volume(self) -> float:
         return get_float(self.volume)
@@ -128,7 +129,7 @@ class Product(BaseModel):
         return values
 
     def to_json_model(self) -> dict[str, Any]:
-        data = self.model_dump(include={'name', 'sku', 'upc', 'tastingDescription'})
+        data = self.model_dump(include={'name', 'sku', 'upc', 'tastingDescription', 'is_active'})
         data.update({
             'combined_score': int(self.combined_score()),
             'country': self.country.to_json_model(),

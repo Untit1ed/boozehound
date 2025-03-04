@@ -120,7 +120,8 @@
    <script type="text/x-template" id="item-component">
       <div class="category">
          <h2>{{ item.category }}</h2>
-         <div class="grid item" v-for="(product, index) in item.items"
+         <div :class="['grid', 'item', { inactive: !product.is_active }]"
+            v-for="(product, index) in item.items"
             :key="index">
             <div class="image-container">
                <div @click="select(product)">
