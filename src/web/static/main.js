@@ -56,7 +56,7 @@ const FilterComponent = {
       },
       update_sorts(sort, event) {
          if (event.target.checked && sort != 'none') {
-            sort = ['-' + sort].concat(GlobalStore.sorts);
+            sort = [sort].concat(GlobalStore.sorts);
          } else {
             sort = GlobalStore.sorts;
          }

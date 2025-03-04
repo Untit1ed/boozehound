@@ -68,13 +68,13 @@
                <fieldset>
                   <input name="top_drop" type="radio" id="none"  @change="update_sorts('none', $event)" checked/>
                   <label htmlFor="none">Default</label>
-                  <input name="top_drop" type="radio" id="price_drop_rate" @change="update_sorts('price_drop_rate', $event)"/>
+                  <input name="top_drop" type="radio" id="price_drop_rate" @change="update_sorts('-price_drop_rate', $event)"/>
                   <label htmlFor="price_drop_rate">Top Drops (%)</label>
-                  <input name="top_drop" type="radio" id="price_drop" @change="update_sorts('price_drop', $event)"/>
+                  <input name="top_drop" type="radio" id="price_drop" @change="update_sorts('-price_drop', $event)"/>
                   <label htmlFor="price_drop">Top Drops ($)</label>
-                  <input name="top_drop" type="radio" id="alc_rate" @change="update_sorts('alcohol', $event)"/>
+                  <input name="top_drop" type="radio" id="alc_rate" @change="update_sorts('-alcohol', $event)"/>
                   <label htmlFor="price_drop">Alc.%</label>
-                  <input name="top_drop" type="radio" id="ppml" @change="update_sorts('-ppml', $event)"/>
+                  <input name="top_drop" type="radio" id="ppml" @change="update_sorts('ppml', $event)"/>
                   <label htmlFor="price_drop">$/ml</label>
                </fieldset>
 
