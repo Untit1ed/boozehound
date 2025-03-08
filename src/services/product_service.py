@@ -76,8 +76,5 @@ class ProductService:
                     category
                 )
 
-        for product in self.products:
-            self.product_repo.get_or_add_product(product)
-            # self.price_history_repo.get_or_add_price_history(product)
-
-        self.price_history_repo.bulk_add_price_histories(self.products)  # Add this instead of the loop
+        self.product_repo.bulk_add_products(self.products)
+        self.price_history_repo.bulk_add_price_histories(self.products)

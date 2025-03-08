@@ -83,6 +83,7 @@ def reload():
     return jsonify({"message": "Reload task started!"}), 202
 
 
+@app.route('/startt', methods=['POST'])
 def start():
     thread = threading.Thread(target=run_daily_task)
     thread.start()
