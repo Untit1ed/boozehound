@@ -134,7 +134,7 @@ class Product(BaseModel):
             'combined_score': int(self.combined_score()),
             'country': self.country.to_json_model(),
             'category': self.category.description,
-            'is_new': len(self.price_history) < 7 if self.price_history else False,
+            'histories': len(self.price_history) if self.price_history else 0,
             'alcohol': self.alcohol_score(),
             'volume': self.get_numeric_volume(),
             'unit_size': self.get_numeric_unit_size(),

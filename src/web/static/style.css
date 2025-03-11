@@ -114,14 +114,16 @@ header {
          transition: transform 0.3s ease-in-out;
       }
 
-      .fis {
+      span, a {
          position: absolute;
+      }
+
+      .fis {
          top: 5px;
          right: 5px;
       }
 
       .upc {
-         position: absolute;
          bottom: 5px;
          right: 5px;
       }

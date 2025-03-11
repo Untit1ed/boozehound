@@ -483,7 +483,7 @@ const app = Vue.createApp({
                );
             }
             if (filters.is_new) {
-               result = result && x.is_new;
+               result = result && x.histories < 5;
             }
             return result;
          });
@@ -510,6 +510,7 @@ const app = Vue.createApp({
                   price_drop: item.price.price - item.price.sale_price,
                   price_drop_rate: (item.price.price - item.price.sale_price) / item.price.price,
                   actual_country: window.UPC.getCountryFromUPC(item.upc),
+                  is_new: item.histories,
                });
                return acc;
             }, {});
