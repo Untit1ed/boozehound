@@ -11,6 +11,8 @@ from services.product_service import ProductService
 
 load_dotenv()
 
+PORT = os.environ.get('PORT', 8000)
+
 DB_URL = os.environ.get('DB_URL')
 BCL_URL = os.getenv('BCL_URL')
 JSON_LOC = "data/products.json"
@@ -101,4 +103,5 @@ if __name__ == '__main__':
     if os.getenv('ENV') == 'local':
         app.run(host='0.0.0.0', port=80, debug=True, use_reloader=False)
     else:
-        app.run(port=8000, use_reloader=False)
+        print(f'WEB STARTED {__name__}. Port {PORT}')
+        app.run(port=PORT, use_reloader=False)
