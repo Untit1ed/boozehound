@@ -82,6 +82,11 @@
                   <input role="switch" type="checkbox" disabled checked/>
                   Booze Score
                </label>
+
+               <label>
+                  <input role="switch" type="checkbox" @change="update_filters('is_new', $event)"/>
+                  New Items
+               </label>
             </div>
             <div>
                <h3>Search</h3>
@@ -128,7 +133,8 @@
                   <img :src="product.image" @error="handleImageError($event, product.category)" />
                </div>
                <a href="#" :class="'fi fi-' + product.country.code.toLowerCase()" class="fis" @click="filter('country', product.country.code)"></a>
-               <span>{{ product.actual_country }}</span>
+               <span class="upc">{{ product.actual_country }}</span>
+               <span class="new" v-if="product.is_new">new</span>
             </div>
             <div class="product-details">
                <hgroup>

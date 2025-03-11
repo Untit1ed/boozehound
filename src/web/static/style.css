@@ -120,10 +120,18 @@ header {
          right: 5px;
       }
 
-      span {
+      .upc {
          position: absolute;
          bottom: 5px;
          right: 5px;
+      }
+
+      .new {
+         top: 5px;
+         left: 5px;
+         font-weight: bold;
+         font-size: small;
+         color: rgb(231, 86, 14);
       }
    }
 
@@ -171,6 +179,6 @@ header {
    }
 }
 
-.inactive{
+.inactive {
    opacity: 0.5;
 }

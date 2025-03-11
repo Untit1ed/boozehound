@@ -64,6 +64,7 @@ const FilterComponent = {
          this.updateSorts(sort)
       },
       update_filters(type, event) {
+         console.log(type, event);
          if (type == 'country') {
             value = event.target.value;
          } else if (type == 'category') {
