@@ -95,6 +95,10 @@ def start():
         pass
 
 
+@app.route('/ping', methods=['GET'])
+def ping():
+    return jsonify("pong"), 200
+
 if __name__ == '__main__':
     product_service.load_repos()
 
