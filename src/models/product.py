@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from typing import Any, List, Optional, Type, Union
 
 from pydantic import BaseModel, Field, model_validator
@@ -134,7 +136,7 @@ class Product(BaseModel):
             'combined_score': int(self.combined_score()),
             'country': self.country.to_json_model(),
             'category': self.category.description,
-            'histories': len(self.price_history) if self.price_history else 0,
+            'is_new': (datetime.now() - min(self.price_history, key=lambda x: x.last_updated).last_updated).days < 7 if self.price_history else False,
             'alcohol': self.alcohol_score(),
             'volume': self.get_numeric_volume(),
             'unit_size': self.get_numeric_unit_size(),
