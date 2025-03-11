@@ -78,15 +78,16 @@
                   <label htmlFor="price_drop">$/ml</label>
                </fieldset>
 
-               <label>
-                  <input role="switch" type="checkbox" disabled checked/>
-                  Booze Score
-               </label>
-
-               <label>
-                  <input role="switch" type="checkbox" @change="update_filters('is_new', $event)"/>
-                  New Items
-               </label>
+               <fieldset>
+                  <label>
+                     <input role="switch" type="checkbox" disabled checked/>
+                     Booze Score
+                  </label>
+                  <label>
+                     <input role="switch" type="checkbox" @change="update_filters('is_new', $event)"/>
+                     New Items
+                  </label>
+               </fieldset>
             </div>
             <div>
                <h3>Search</h3>

@@ -71,6 +71,8 @@ const FilterComponent = {
             value = event.target.value != "" ? Number(event.target.value) : null;
          } else if(type == 'search') {
             value = event.target.value;
+         } else if(type == 'is_new'){
+            value = event.target.checked;
          }
 
          this.updateFilters({ ...{ 'country': this.country, 'category': this.category, 'search': this.search }, [type]: value });
@@ -479,6 +481,9 @@ const app = Vue.createApp({
                   x.full_category.some((category) => category.description.toLowerCase().includes(query)) ||
                   x.upc.startsWith(query, 1)
                );
+            }
+            if (filters.is_new) {
+               result = result && x.is_new;
             }
             return result;
          });
