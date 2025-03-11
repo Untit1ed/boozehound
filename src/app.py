@@ -101,4 +101,4 @@ if __name__ == '__main__':
     if os.getenv('ENV') == 'local':
         app.run(host='0.0.0.0', port=80, debug=True, use_reloader=False)
     else:
-        app.run(use_reloader=False)
+        app.run(port=8000, use_reloader=False)
