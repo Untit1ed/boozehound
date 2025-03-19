@@ -19,7 +19,7 @@ JSON_LOC = "data/products.json"
 
 print(f'WEB STARTING {__name__}')
 print(f'{DB_URL}')
-product_service: ProductService = ProductService(DB_URL, False)
+product_service: ProductService = ProductService(DB_URL, True)
 
 app: Flask = Flask(__name__,
                    static_folder='web/static',
@@ -106,7 +106,6 @@ def ping():
     return jsonify("pong"), 200
 
 if __name__ == '__main__':
-    product_service.load_repos()
     if product_service.product_repo.db_helper.offline:
         bcl = BCLService()
         bcl.download_json(BCL_URL, JSON_LOC)
