@@ -19,7 +19,7 @@ JSON_LOC = "data/products.json"
 
 print(f'WEB STARTING {__name__}')
 print(f'{DB_URL}')
-product_service: ProductService = ProductService(DB_URL, True)
+product_service: ProductService = ProductService(DB_URL, False)
 
 app: Flask = Flask(__name__,
                    static_folder='web/static',
@@ -49,7 +49,13 @@ def get_data():
 
 @app.route('/api/price/<sku>', methods=['GET'])
 def get_price(sku):
-    prices = product_service.price_history_repo.history_map[sku]
+    if sku in product_service.price_history_repo.history_map:
+        prices = product_service.price_history_repo.history_map[sku]
+    elif product_service.products:
+        prices = next(product for product in product_service.products if product.sku == sku).price_history
+    else:
+        prices = []
+
     data = [x.to_json_model_simple() for x in prices]
     return jsonify(data)
 
@@ -85,7 +91,7 @@ def reload():
     return jsonify({"message": "Reload task started!"}), 202
 
 
-@app.route('/startt', methods=['POST'])
+@app.route('/start', methods=['POST'])
 def start():
     thread = threading.Thread(target=run_daily_task)
     thread.start()
@@ -101,6 +107,11 @@ def ping():
 
 if __name__ == '__main__':
     product_service.load_repos()
+    if product_service.product_repo.db_helper.offline:
+        bcl = BCLService()
+        bcl.download_json(BCL_URL, JSON_LOC)
+        product_service.load_products(JSON_LOC)
+
 
     start()
     # product_service.load_products(JSON_LOC)

@@ -39,13 +39,16 @@ FROM products p
 JOIN (
     SELECT sku, MAX(last_updated) as last_update
     FROM price_history
-    WHERE last_updated >= CURRENT_DATE - 7
+    -- WHERE last_updated >= CURRENT_DATE - 7
     GROUP BY sku
 ) h ON p.sku = h.sku;"""
 
         print('Loading products from DB...', end='\r')
         products = self.db_helper.execute_query(query)
-        print(f'\x1b[2K\r{len(products)} products loaded.')
+        if not products:
+            return {}
+
+        print(f'\x1b[2K\r{len(products) if products else 0} products loaded.')
         product_dict = {}
 
         for row in products:
@@ -104,7 +107,7 @@ JOIN (
                 logging.error(f"Error processing product row: {row}. Error: {str(e)}")
                 continue
 
-        logging.info(f"Successfully loaded {len(product_dict)} valid products")
+        print(f"Successfully loaded {len(product_dict)} valid products")
         return product_dict
 
     def get_or_add_product(
@@ -211,40 +214,43 @@ JOIN (
             # Update in-memory map
             self.products_map[product.sku] = product
 
-        if params_list:
-            if self.db_helper.is_mysql:
-                insert_query = """
-                    INSERT INTO products (
-                        sku, name, category_id, country_code, description,
-                        volume, alcohol, upc, unit_size,
-                        sub_category_id, class_id
-                    )
-                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-                    ON DUPLICATE KEY UPDATE
-                        name = VALUES(name),
-                        upc = VALUES(upc),
-                        category_id = VALUES(category_id),
-                        sub_category_id = VALUES(sub_category_id),
-                        class_id = VALUES(class_id),
-                        date_updated = now()
-                """
-            else:
-                insert_query = """
-                    INSERT INTO products (
-                        sku, name, category_id, country_code, description,
-                        volume, alcohol, upc, unit_size,
-                        sub_category_id, class_id
-                    )
-                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-                    ON CONFLICT (sku)
-                    DO UPDATE SET
-                        name = EXCLUDED.name,
-                        upc = EXCLUDED.upc,
-                        category_id = EXCLUDED.category_id,
-                        sub_category_id = EXCLUDED.sub_category_id,
-                        class_id = EXCLUDED.class_id,
-                        date_updated = NOW()
-                """
+        if not params_list:
+            return None
 
-            self.db_helper.bulk_insert_query(insert_query, params_list)
-            logging.info(f"Bulk inserted/updated {len(params_list)} products")
+        print(f'Inserting {len(params_list)} products...')
+
+        if self.db_helper.is_mysql:
+            insert_query = """
+                INSERT INTO products (
+                    sku, name, category_id, country_code, description,
+                    volume, alcohol, upc, unit_size,
+                    sub_category_id, class_id
+                )
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                ON DUPLICATE KEY UPDATE
+                    name = VALUES(name),
+                    upc = VALUES(upc),
+                    category_id = VALUES(category_id),
+                    sub_category_id = VALUES(sub_category_id),
+                    class_id = VALUES(class_id),
+                    date_updated = now()
+            """
+        else:
+            insert_query = """
+                INSERT INTO products (
+                    sku, name, category_id, country_code, description,
+                    volume, alcohol, upc, unit_size,
+                    sub_category_id, class_id
+                )
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                ON CONFLICT (sku)
+                DO UPDATE SET
+                    name = EXCLUDED.name,
+                    upc = EXCLUDED.upc,
+                    category_id = EXCLUDED.category_id,
+                    sub_category_id = EXCLUDED.sub_category_id,
+                    class_id = EXCLUDED.class_id,
+                    date_updated = NOW()
+            """
+        self.db_helper.bulk_insert_query(insert_query, params_list)
+        print(f"Bulk inserted/updated {len(params_list)} products")

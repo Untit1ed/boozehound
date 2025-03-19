@@ -15,6 +15,7 @@ class DbHelper:
         self.config = config
         self.is_mysql = True
         self.logger = logging.getLogger(__name__)
+        self.offline = False
 
     def connect(self) -> pymysql.connections.Connection:
         """
@@ -22,11 +23,16 @@ class DbHelper:
 
         :return: A pymysql database connection object.
         """
-        if 'localhost' in self.config['host']:
-            return pymysql.connect(**self.config)
-        else:
+        try:
+            if 'localhost' in self.config['host']:
+                return pymysql.connect(**self.config)
+
             self.is_mysql = False
             return psycopg2.connect(**self.config)
+
+        except Exception as e:
+            self.offline = True
+            self.logger.error(f"Database error: {str(e)}")
 
 
     def execute_query(self, query: str, params: Optional[Tuple] = None, fetch_one: bool = False) -> Any:
@@ -41,6 +47,9 @@ class DbHelper:
         self.logger.debug(f"Executing query: {query[:100]}...")
         connection = self.connect()
         result = None
+
+        if self.offline:
+            return result
 
         try:
             with connection.cursor() as cursor:
@@ -69,6 +78,9 @@ class DbHelper:
         connection = self.connect()
         result = None
 
+        if self.offline:
+            return result
+
         try:
             with connection.cursor() as cursor:
                 cursor.execute(query, params)
@@ -90,6 +102,10 @@ class DbHelper:
             return
 
         connection = self.connect()
+
+        if self.offline:
+            return None
+
         try:
             with connection.cursor() as cursor:
                 cursor.executemany(query, params_list)

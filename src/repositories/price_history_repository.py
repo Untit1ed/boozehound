@@ -36,7 +36,10 @@ FROM price_history"""
 
         print('Loading price histories from DB...', end='\r')
         price_histories = self.db_helper.execute_query(query)
-        print(f'\x1b[2K\r{len(price_histories)} price histories loaded.')
+        if not price_histories:
+            return {}
+
+        print(f'\x1b[2K\r{len(price_histories) if price_histories else 0} price histories loaded.')
 
         price_history_dict = {}
 
@@ -141,7 +144,7 @@ FROM price_history"""
         # Update the in-memory dictionary
         self.history_map.setdefault(history.sku, []).append(history)
 
-        logging.info(f"Price history inserted for product {product.name}")
+        print(f"Price history inserted for product {product.name}")
         return history.sku
 
     def bulk_add_price_histories(self, products: List[Product]) -> None:
@@ -175,12 +178,16 @@ FROM price_history"""
             # Update in-memory map
             self.history_map.setdefault(history.sku, []).append(history)
 
-        if params_list:
-            insert_query = """
-                INSERT INTO price_history (
-                    last_updated, sku, regular_price, current_price,
-                    promotion_start_date, promotion_end_date, source
-                ) VALUES(%s, %s, %s, %s, %s, %s, %s);
-            """
-            self.db_helper.bulk_insert_query(insert_query, params_list)
-            logging.info(f"Bulk inserted {len(params_list)} price histories")
+        if not params_list:
+            return None
+
+        print(f'Inserting {len(params_list)} price histories...')
+
+        insert_query = """
+            INSERT INTO price_history (
+                last_updated, sku, regular_price, current_price,
+                promotion_start_date, promotion_end_date, source
+            ) VALUES(%s, %s, %s, %s, %s, %s, %s);
+        """
+        self.db_helper.bulk_insert_query(insert_query, params_list)
+        print(f"Bulk inserted {len(params_list)} price histories")

@@ -24,7 +24,10 @@ class CategoryRepository:
         query = "SELECT name, bcl_id FROM categories"
         print('Loading categories from DB...', end='\r')
         categories = self.db_helper.execute_query(query)
-        print(f'\x1b[2K\r{len(categories)} categories loaded.')
+        if not categories:
+            return {}
+
+        print(f'\x1b[2K\r{len(categories) if categories else 0} categories loaded.')
 
         return {bcl_id: Category(description=name, id=bcl_id) for name, bcl_id in categories}
 

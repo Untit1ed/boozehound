@@ -24,8 +24,10 @@ class CountryRepository:
         query = "SELECT name, code FROM countries"
         print('Loading countries from DB...', end='\r')
         countries = self.db_helper.execute_query(query)
-        print(f'\x1b[2K\r{len(countries)} countries loaded.')
+        if not countries:
+            return {}
 
+        print(f'\x1b[2K\r{len(countries)} countries loaded.')
         return {code: Country(name=name, code=code) for name, code in countries}
 
     def get_or_add_country(self, country: Country) -> str:
