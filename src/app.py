@@ -19,7 +19,7 @@ JSON_LOC = "data/products.json"
 
 print(f'WEB STARTING {__name__}')
 print(f'{DB_URL}')
-product_service: ProductService = ProductService(DB_URL, True)
+product_service: ProductService = ProductService(DB_URL, False)
 
 app: Flask = Flask(__name__,
                    static_folder='web/static',
@@ -105,16 +105,23 @@ def start():
 def ping():
     return jsonify("pong"), 200
 
-if __name__ == '__main__':
+def gunicorn():
+    product_service.load_repos()
+
     if product_service.product_repo.db_helper.offline:
         bcl = BCLService()
         bcl.download_json(BCL_URL, JSON_LOC)
         product_service.load_products(JSON_LOC)
 
+    return app
+
+if __name__ == '__main__':
 
     start()
-    # product_service.load_products(JSON_LOC)
+
     if os.getenv('ENV') == 'local':
+        gunicorn()
+
         app.run(host='0.0.0.0', port=80, debug=True, use_reloader=False)
     else:
         print(f'WEB STARTED {__name__}. Port {PORT}')
