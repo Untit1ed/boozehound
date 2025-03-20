@@ -105,8 +105,7 @@ def start():
 def ping():
     return jsonify("pong"), 200
 
-if __name__ == '__main__':
-
+def web_start():
     product_service.load_repos()
 
     if product_service.product_repo.db_helper.offline:
@@ -114,9 +113,16 @@ if __name__ == '__main__':
         bcl.download_json(BCL_URL, JSON_LOC)
         product_service.load_products(JSON_LOC)
 
+# gunicorn
+if __name__ == 'src.app':
+    web_start()
+elif __name__ == '__main__':
+
     start()
 
     if os.getenv('ENV') == 'local':
+
+        web_start()
         app.run(host='0.0.0.0', port=80, debug=True, use_reloader=False)
     else:
         print(f'WEB STARTED {__name__}. Port {PORT}')
