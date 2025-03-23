@@ -51,6 +51,8 @@ def get_data():
 def get_price(sku):
     if sku in product_service.price_history_repo.history_map:
         prices = product_service.price_history_repo.history_map[sku]
+    if product_service.price_history_repo.load_history(sku):
+        prices = product_service.price_history_repo.history_map[sku]
     elif product_service.products:
         prices = next(product for product in product_service.products if product.sku == sku).price_history
     else:

@@ -39,7 +39,7 @@ FROM products p
 JOIN (
     SELECT sku, MAX(last_updated) as last_update
     FROM price_history
-    -- WHERE last_updated >= CURRENT_DATE - 7
+    WHERE last_updated >= CURRENT_DATE - 90
     GROUP BY sku
 ) h ON p.sku = h.sku;"""
 

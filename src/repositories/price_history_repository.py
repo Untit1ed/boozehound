@@ -21,9 +21,9 @@ class PriceHistoryRepository:
         :param db_helper: An instance of the DbHelper class.
         """
         self.db_helper = db_helper
-        self.history_map: Dict[str, List[PriceHistory]] = self.load_history()
+        self.history_map: Dict[str, List[PriceHistory]] = {}
 
-    def load_history(self) -> Dict[str, List[PriceHistory]]:
+    def load_history(self, sku) -> List[PriceHistory]:
 
         """
         Load all products price histories from the database into an in-memory dictionary.
@@ -32,16 +32,16 @@ class PriceHistoryRepository:
         """
         query = """SELECT
     last_updated, sku, regular_price, current_price, promotion_start_date, promotion_end_date
-FROM price_history"""
+FROM price_history WHERE sku = %s ORDER BY last_updated;"""
 
         print('Loading price histories from DB...', end='\r')
-        price_histories = self.db_helper.execute_query(query)
+        price_histories = self.db_helper.execute_query(query, (sku,))
         if not price_histories:
-            return {}
+            return []
 
-        print(f'\x1b[2K\r{len(price_histories) if price_histories else 0} price histories loaded.')
+        print(f'\x1b[2K\r{len(price_histories) if price_histories else 0} price histories loaded for sku {sku}.')
 
-        price_history_dict = {}
+        price_histories = []
 
         for row in self.filter_prices(price_histories):
             last_updated, sku, regular_price, current_price, promotion_start_date, promotion_end_date = row
@@ -55,9 +55,11 @@ FROM price_history"""
                 promotion_end_date=promotion_end_date
             )
 
-            price_history_dict.setdefault(sku, []).append(history)
+            price_histories.append(history)
 
-        return price_history_dict
+
+        self.history_map[sku] = price_histories
+        return price_histories
 
     def filter_prices(self, prices: List[Tuple]) -> List[Tuple]:
         """
