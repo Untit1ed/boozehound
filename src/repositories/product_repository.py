@@ -109,7 +109,7 @@ JOIN (
                     subCategory=sub_category,
                     subSubCategory=class_name,
                     #price_history=sorted(history, key=lambda x: x.last_updated) if history else None,
-                    price_history=history,
+                    price_history=[history],
                     is_active=is_active
                 )
 
