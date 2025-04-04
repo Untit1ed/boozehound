@@ -3,6 +3,7 @@ import logging
 
 from db_helper import DbHelper
 
+from models.price_history import PriceHistory
 from models.product import Product
 from repositories.category_repository import CategoryRepository
 from repositories.country_repository import CountryRepository
@@ -34,14 +35,21 @@ class ProductRepository:
 
         :return: A dictionary mapping Product objects to product IDs.
         """
-        query = """SELECT p.sku, name, category_id, country_code, description, volume, alcohol, upc, unit_size, id, sub_category_id, class_id, last_update >= CURRENT_DATE - 2 as is_active
+        query = """SELECT
+    p.sku, name, category_id, country_code, description, volume, alcohol, upc, unit_size, id, sub_category_id, class_id,
+    last_updated, regular_price, current_price, promotion_start_date, promotion_end_date, last_update >= CURRENT_DATE - 2 as is_active
 FROM products p
 JOIN (
     SELECT sku, MAX(last_updated) as last_update
     FROM price_history
     WHERE last_updated >= CURRENT_DATE - 90
     GROUP BY sku
-) h ON p.sku = h.sku;"""
+) h ON p.sku = h.sku
+JOIN (
+    SELECT sku, last_updated, regular_price, current_price, promotion_start_date, promotion_end_date
+    FROM price_history
+) ph ON p.sku = ph.sku AND h.last_update = ph.last_updated
+"""
 
         print('Loading products from DB...', end='\r')
         products = self.db_helper.execute_query(query)
@@ -53,7 +61,7 @@ JOIN (
 
         for row in products:
             try:
-                sku, name, category_id, country_code, description, volume, alcohol, upc, unit_size, id, sub_category_id, class_id, is_active = row
+                sku, name, category_id, country_code, description, volume, alcohol, upc, unit_size, id, sub_category_id, class_id, last_updated, regular_price, current_price, promotion_start_date, promotion_end_date, is_active = row
 
                 if not sku or not name:
                     logging.warning(f"Skipping product with missing required fields: SKU={sku}, name={name}")
@@ -79,11 +87,14 @@ JOIN (
                 if not country and country_code:
                     logging.warning(f"Missing country {country_code} for product {sku}")
 
-                # Get price history with error handling
-                history = self.history_repository.history_map.get(sku)
-                if not history:
-                    logging.warning(f"Missing price history for product {sku}")
-                    continue  # Skip products without price history
+                history = PriceHistory(
+                    sku=sku,
+                    last_updated=last_updated,
+                    regular_price=regular_price,
+                    current_price=current_price,
+                    promotion_start_date=promotion_start_date,
+                    promotion_end_date=promotion_end_date
+                )
 
                 product = Product(
                     sku=sku,
@@ -97,7 +108,8 @@ JOIN (
                     unitSize=unit_size,
                     subCategory=sub_category,
                     subSubCategory=class_name,
-                    price_history=sorted(history, key=lambda x: x.last_updated) if history else None,
+                    #price_history=sorted(history, key=lambda x: x.last_updated) if history else None,
+                    price_history=history,
                     is_active=is_active
                 )
 
