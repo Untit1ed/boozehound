@@ -28,6 +28,7 @@ class Product(BaseModel):
     subSubCategory: Optional[Category]
     price_history: Optional[List[PriceHistory]] = None
     is_active: Optional[bool] = True
+    first_update: Optional[datetime] = None
 
     def get_numeric_volume(self) -> float:
         return get_float(self.volume)
@@ -136,7 +137,7 @@ class Product(BaseModel):
             'combined_score': int(self.combined_score()),
             'country': self.country.to_json_model(),
             'category': self.category.description,
-            'is_new': (datetime.now() - min(self.price_history, key=lambda x: x.last_updated).last_updated).days < 7 if self.price_history else False,
+            'is_new': (datetime.now() - self.first_update).days < 7 if self.first_update else False,
             'alcohol': self.alcohol_score(),
             'volume': self.get_numeric_volume(),
             'unit_size': self.get_numeric_unit_size(),

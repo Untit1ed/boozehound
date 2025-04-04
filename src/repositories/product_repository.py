@@ -37,10 +37,10 @@ class ProductRepository:
         """
         query = """SELECT
     p.sku, name, category_id, country_code, description, volume, alcohol, upc, unit_size, id, sub_category_id, class_id,
-    last_updated, regular_price, current_price, promotion_start_date, promotion_end_date, last_update >= CURRENT_DATE - 2 as is_active
+    last_updated, regular_price, current_price, promotion_start_date, promotion_end_date, last_update >= CURRENT_DATE - 2 as is_active, first_update
 FROM products p
 JOIN (
-    SELECT sku, MAX(last_updated) as last_update
+    SELECT sku, MAX(last_updated) as last_update, MIN(last_updated) as first_update
     FROM price_history
     WHERE last_updated >= CURRENT_DATE - 90
     GROUP BY sku
@@ -61,7 +61,7 @@ JOIN (
 
         for row in products:
             try:
-                sku, name, category_id, country_code, description, volume, alcohol, upc, unit_size, id, sub_category_id, class_id, last_updated, regular_price, current_price, promotion_start_date, promotion_end_date, is_active = row
+                sku, name, category_id, country_code, description, volume, alcohol, upc, unit_size, id, sub_category_id, class_id, last_updated, regular_price, current_price, promotion_start_date, promotion_end_date, is_active, first_update = row
 
                 if not sku or not name:
                     logging.warning(f"Skipping product with missing required fields: SKU={sku}, name={name}")
@@ -110,7 +110,8 @@ JOIN (
                     subSubCategory=class_name,
                     #price_history=sorted(history, key=lambda x: x.last_updated) if history else None,
                     price_history=[history],
-                    is_active=is_active
+                    is_active=is_active,
+                    first_update=first_update,
                 )
 
                 product_dict[product.sku] = product
