@@ -41,7 +41,7 @@ FROM price_history WHERE sku = %s ORDER BY last_updated;"""
 
         print(f'\x1b[2K\r{len(price_histories) if price_histories else 0} price histories loaded for sku {sku}.')
 
-        price_histories = []
+        price_histories_list = []
 
         for row in self.filter_prices(price_histories):
             last_updated, sku, regular_price, current_price, promotion_start_date, promotion_end_date = row
@@ -55,11 +55,10 @@ FROM price_history WHERE sku = %s ORDER BY last_updated;"""
                 promotion_end_date=promotion_end_date
             )
 
-            price_histories.append(history)
+            price_histories_list.append(history)
 
-
-        self.history_map[sku] = price_histories
-        return price_histories
+        self.history_map[sku] = price_histories_list
+        return price_histories_list
 
     def filter_prices(self, prices: List[Tuple]) -> List[Tuple]:
         """
