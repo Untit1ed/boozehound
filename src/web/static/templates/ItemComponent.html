@@ -1,0 +1,25 @@
+<article>
+   <header>
+      <strong>{{ item.category }}</strong>
+   </header>
+   <div class="grid" style="margin-bottom: 0;">
+      <article v-for="product in item.items" :key="product.sku" @click="select(product)">
+         <div class="product-image-container">
+            <img :src="product.image" @error="handleImageError($event, product.category)" loading="lazy">
+            <div class="flag-container">
+               <span :class="'fi fi-' + product.country.code.toLowerCase()"></span>
+               <span v-if="product.actual_country" :class="'fi fi-' + product.actual_country.toLowerCase()"></span>
+            </div>
+         </div>
+         <div class="product-info">
+            <header>
+               <strong>{{ product.name }}</strong>
+            </header>
+            <a :href="product.url" target="_blank" @click.stop>
+               <img :src="'/static/img/external-link.svg'" class="external-link" alt="External Link">
+            </a>
+            <p>{{ product.combined_score.toLocaleString() }}</p>
+         </div>
+      </article>
+   </div>
+</article>

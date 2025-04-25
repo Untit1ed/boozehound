@@ -85,7 +85,7 @@
                   </label>
                   <label>
                      <input role="switch" type="checkbox" @change="update_filters('is_new', $event)"/>
-                     New Items
+                     New Items Only
                   </label>
                </fieldset>
             </div>
@@ -214,7 +214,7 @@
                           </tr>
                           <tr>
                             <th scope="row">Boozecore</th>
-                            <td>{{ product.combined_score.toLocaleString() }} / {{ max_score.toLocaleString() }}</td>
+                            <td><progress-bar :value="product.combined_score" /></td>
                           </tr>
                         </tbody>
                      </table>
@@ -233,7 +233,11 @@
    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script> <!-- Include the date adapter -->
    <script src="/static/upc.js"></script>
-   <script src="/static/main.js"></script>
+   <script src="/static/utils.js"></script>
+   <script src="/static/components/FilterComponent.js"></script>
+   <script src="/static/components/ItemComponent.js"></script>
+   <script src="/static/components/ModalComponent.js"></script>
+   <script src="/static/app.js"></script>
 </body>
 
 </html>

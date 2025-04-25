@@ -49,6 +49,7 @@ JOIN (
     SELECT sku, last_updated, regular_price, current_price, promotion_start_date, promotion_end_date
     FROM price_history
 ) ph ON p.sku = ph.sku AND h.last_update = ph.last_updated
+WHERE h.last_update >= CURRENT_DATE - 30
 """
 
         print('Loading products from DB...', end='\r')

@@ -1,0 +1,22 @@
+<details role="list" dir="rtl">
+   <summary aria-haspopup="listbox" role="button">Filter</summary>
+   <ul role="listbox">
+      <li>
+         <article>
+            <label>Country</label>
+            <select v-model="country" @change="update_filters('country', $event)">
+               <option value="">All</option>
+               <option v-for="country in countries" :key="country.code" :value="country.code">{{ country.name }}</option>
+            </select>
+            <label>Category</label>
+            <select v-model="category" @change="update_filters('category', $event)">
+               <option value="">All</option>
+               <option v-for="category in categories" :key="category.id" :value="category.id">{{ category.description }}</option>
+            </select>
+            <label>Search</label>
+            <input type="text" v-model="search" @input="update_filters('search', $event)" placeholder="Search...">
+            <button @click="reset">Reset</button>
+         </article>
+      </li>
+   </ul>
+</details>

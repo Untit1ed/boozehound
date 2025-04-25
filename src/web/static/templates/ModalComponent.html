@@ -1,0 +1,56 @@
+<dialog id="modalDialog" class="modal" open>
+   <article class="modal-content">
+      <header>
+         <a href="#close" aria-label="Close" class="close" @click.prevent="close"></a>
+         {{ product.name }}
+      </header>
+      <div class="grid">
+         <div>
+            <img :src="renderImage()" @error="handleImageError($event, product.category)" loading="lazy">
+         </div>
+         <div>
+            <table>
+               <tbody>
+                  <tr>
+                     <th scope="row">Price</th>
+                     <td>${{ product.price.price.toFixed(2) }}</td>
+                  </tr>
+                  <tr>
+                     <th scope="row">Sale Price</th>
+                     <td>${{ product.price.sale_price.toFixed(2) }}</td>
+                  </tr>
+                  <tr>
+                     <th scope="row">Volume</th>
+                     <td>{{ product.volume * 1000 }}ml x {{ product.unit_size }}</td>
+                  </tr>
+                  <tr>
+                     <th scope="row">ABV</th>
+                     <td>{{ product.alcohol }}%</td>
+                  </tr>
+                  <tr>
+                     <th scope="row">Category</th>
+                     <td>{{ product.full_category.map(x => x.description).join(' -> ') }}</td>
+                  </tr>
+                  <tr>
+                     <th scope="row">Country</th>
+                     <td>{{ product.country.name }}</td>
+                  </tr>
+                  <tr>
+                     <th scope="row">UPC</th>
+                     <td>{{ product.upc }}</td>
+                  </tr>
+                  <tr>
+                     <th scope="row">SKU</th>
+                     <td>{{ product.sku }}</td>
+                  </tr>
+                  <tr>
+                     <th scope="row">Boozecore</th>
+                     <td>{{ product.combined_score.toLocaleString() }} / {{ max_score.toLocaleString() }}</td>
+                  </tr>
+               </tbody>
+            </table>
+         </div>
+      </div>
+      <canvas ref="myChart"></canvas>
+   </article>
+</dialog>
