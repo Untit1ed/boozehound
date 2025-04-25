@@ -118,10 +118,11 @@ const ModalComponent = {
    },
    data() {
       return {
-         max_score: GlobalStore.max_score,
+         max_score: 0,  // Initialize to 0
       };
    },
    async mounted() {
+      this.max_score = GlobalStore.max_score;  // Set the value after component is mounted
       document
          .getElementById('modalDialog')
          .addEventListener('click', this.close);
