@@ -1,7 +1,7 @@
-const GlobalStore = Object.freeze({
+const GlobalStore = {
    max_score: 0,
    sorts: ['-combined_score']
-});
+};
 
 const categoryImageMap = Object.freeze({
    'Wine': '/static/img/wine.png',
