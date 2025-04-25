@@ -18,11 +18,9 @@ const ProgressBar = {
       },
    },
    template: `
+      {{ percentage }}% ({{ value.toLocaleString() }} / {{ max.toLocaleString() }})
       <div style="width: 100%; background: #0003; border-radius: 10px; overflow: hidden; height: 20px; position: relative;">
         <div :style="barStyle" style="height: 100%; background: #82ab00;">
-          <span style="position: absolute; left: 0; right: 0; text-align: center;line-height: 20px;">
-            {{ percentage }}% ({{ value.toLocaleString() }} / {{ max.toLocaleString() }})
-          </span>
         </div>
       </div>
   `,
