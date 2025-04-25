@@ -491,7 +491,7 @@ const app = Vue.createApp({
          if (this.products.length == filteredProducts.length)
             filteredProducts = filteredProducts.filter((item) => item.combined_score >= 1000);
 
-         this.groupedProducts = this.groupAndSort(filteredProducts, 'category', this.sorts, 1000);
+         this.groupedProducts = this.groupAndSort(filteredProducts, 'category', this.sorts, 10000);
       },
       groupAndSort(data, groupByField, sortByFields, topN) {
          // Step 2: Group by the specified field
