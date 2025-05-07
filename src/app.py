@@ -106,7 +106,7 @@ def start():
 
 @app.route('/image/<sku>.jpg', methods=['GET'])
 def image(sku):
-    IMAGE_LOC = 'web/static/downloads'
+    IMAGE_LOC = 'web/static/'
 
     url = f'https://www.bcliquorstores.com/sites/default/files/imagecache/height400px/{sku}.jpg'
     download_path = os.path.join(IMAGE_LOC, f'{sku}.jpg')
@@ -129,7 +129,7 @@ def image(sku):
     else:
         print(f'Image for SKU: {sku} already exists locally.')
 
-    return send_from_directory(IMAGE_LOC, f'{sku}.jpg')
+    return app.send_file(download_path, mimetype='image/jpeg')
 
 
 @app.route('/ping', methods=['GET'])
