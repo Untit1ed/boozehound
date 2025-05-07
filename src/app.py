@@ -19,6 +19,7 @@ PORT = os.environ.get('PORT', 8000)
 DB_URL = os.environ.get('DB_URL')
 BCL_URL = os.getenv('BCL_URL')
 JSON_LOC = "data/products.json"
+IMAGE_LOC = '/tmp/'
 
 print(f'WEB STARTING {__name__}')
 print(f'{DB_URL}')
@@ -105,13 +106,14 @@ def start():
     except RuntimeError:
         pass
 
-@app.route('/image/<sku>.jpg', methods=['GET'])
-def image(sku):
-    IMAGE_LOC = '/tmp/'
+@app.route('/image/<height/><sku>.jpg', methods=['GET'])
+def image(height, sku):
+    if_none_match = request.headers.get('If-None-Match')
+    if if_none_match: # If the browser has a cached version, then let it use it
+        return '', 304
 
-    url = f'https://www.bcliquorstores.com/sites/default/files/imagecache/height400px/{sku}.jpg'
+    url = f'https://www.bcliquorstores.com/sites/default/files/imagecache/{height}/{sku}.jpg'
     download_path = os.path.join(IMAGE_LOC, f'{sku}.jpg')
-
 
     # Create downloads directory if it doesn't exist
     os.makedirs(IMAGE_LOC, exist_ok=True)
@@ -135,7 +137,6 @@ def image(sku):
         file_hash = hashlib.md5(f.read()).hexdigest()
 
     # Check if browser's cached version matches
-    if_none_match = request.headers.get('If-None-Match')
     if if_none_match and if_none_match == file_hash:
         return '', 304
 
@@ -143,9 +144,11 @@ def image(sku):
 
     # Set caching headers
     web_response.headers['ETag'] = file_hash
-    web_response.headers['Cache-Control'] = 'public, max-age=864000'  # Cache for 10 days
+    web_response.headers['Cache-Control'] = 'public, max-age=31536000, immutable' # 1 year
     web_response.headers['Last-Modified'] = time.strftime('%a, %d %b %Y %H:%M:%S GMT',
                                                         time.gmtime(os.path.getmtime(download_path)))
+    web_response.headers['Expires'] = time.strftime('%a, %d %b %Y %H:%M:%S GMT',
+                                                    time.gmtime(time.time() + 31536000))
 
     return web_response
 
