@@ -120,7 +120,7 @@ def image(height, sku):
 
     # Check if image already exists locally
     if not os.path.exists(download_path):
-        print(f'Downloading image for SKU: {sku}')
+        print(f'Downloading image for SKU: {sku}. URL: {url}')
         response = requests.get(url)
         if response.status_code == 200:
             print(f'Image for SKU: {sku} downloaded successfully.')
