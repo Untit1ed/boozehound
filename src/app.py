@@ -106,7 +106,7 @@ def start():
     except RuntimeError:
         pass
 
-@app.route('/image/<height/><sku>.jpg', methods=['GET'])
+@app.route('/image/<height>/<sku>.jpg', methods=['GET'])
 def image(height, sku):
     if_none_match = request.headers.get('If-None-Match')
     if if_none_match: # If the browser has a cached version, then let it use it
