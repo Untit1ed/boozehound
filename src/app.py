@@ -106,7 +106,7 @@ def start():
 
 @app.route('/image/<sku>.jpg', methods=['GET'])
 def image(sku):
-    IMAGE_LOC = 'web/static/'
+    IMAGE_LOC = '/tmp/'
 
     url = f'https://www.bcliquorstores.com/sites/default/files/imagecache/height400px/{sku}.jpg'
     download_path = os.path.join(IMAGE_LOC, f'{sku}.jpg')
