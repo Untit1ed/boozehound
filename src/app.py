@@ -2,10 +2,11 @@ import datetime
 import os
 import threading
 import time
+import hashlib
 
 import requests
 from dotenv import load_dotenv
-from flask import Flask, jsonify, send_file
+from flask import Flask, jsonify, send_file, request
 from flask_compress import Compress
 
 from services.bcl_service import BCLService
@@ -129,7 +130,24 @@ def image(sku):
     else:
         print(f'Image for SKU: {sku} already exists locally.')
 
-    return send_file(download_path, mimetype='image/jpeg')
+    # Generate ETag from file content
+    with open(download_path, 'rb') as f:
+        file_hash = hashlib.md5(f.read()).hexdigest()
+
+    # Check if browser's cached version matches
+    if_none_match = request.headers.get('If-None-Match')
+    if if_none_match and if_none_match == file_hash:
+        return '', 304
+
+    web_response = send_file(download_path, mimetype='image/jpeg')
+
+    # Set caching headers
+    web_response.headers['ETag'] = file_hash
+    web_response.headers['Cache-Control'] = 'public, max-age=864000'  # Cache for 10 days
+    web_response.headers['Last-Modified'] = time.strftime('%a, %d %b %Y %H:%M:%S GMT',
+                                                        time.gmtime(os.path.getmtime(download_path)))
+
+    return web_response
 
 
 @app.route('/ping', methods=['GET'])
