@@ -252,6 +252,7 @@ const app = Vue.createApp({
                   ...item,
                   url: this.get_url(item.sku),
                   image: this.get_image(item.sku),
+                  alt_image: this.get_alt_image(item.category),
                   price_drop: item.price.price - item.price.sale_price,
                   price_drop_rate: (item.price.price - item.price.sale_price) / item.price.price,
                   actual_country: window.UPC.getCountryFromUPC(item.upc),
@@ -283,6 +284,7 @@ const app = Vue.createApp({
       },
       get_url: (sku) => `https://www.bcliquorstores.com/product/${sku}`,
       get_image: (sku) => `https://www.bcliquorstores.com/sites/default/files/imagecache/height400px/${sku}.jpg`,
+      get_alt_image: (category) => categoryImageMap[category],
       dynamicSort: (fields) => {
          return function (a, b) {
             for (let i = 0; i < fields.length; i++) {
