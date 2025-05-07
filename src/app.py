@@ -5,7 +5,7 @@ import time
 
 import requests
 from dotenv import load_dotenv
-from flask import Flask, jsonify, send_from_directory
+from flask import Flask, jsonify, send_file
 from flask_compress import Compress
 
 from services.bcl_service import BCLService
@@ -129,7 +129,7 @@ def image(sku):
     else:
         print(f'Image for SKU: {sku} already exists locally.')
 
-    return app.send_file(download_path, mimetype='image/jpeg')
+    return send_file(download_path, mimetype='image/jpeg')
 
 
 @app.route('/ping', methods=['GET'])
