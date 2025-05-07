@@ -1,8 +1,8 @@
 import logging
-from typing import Any, Optional, Tuple, List
+from typing import Any, List, Optional, Tuple
 
-import pymysql
 import psycopg2
+import pymysql
 
 
 class DbHelper:

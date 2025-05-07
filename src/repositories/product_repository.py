@@ -1,5 +1,5 @@
-from typing import Dict, Optional, List
 import logging
+from typing import Dict, List, Optional
 
 from db_helper import DbHelper
 

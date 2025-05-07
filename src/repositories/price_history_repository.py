@@ -1,7 +1,7 @@
-from typing import Dict, List, Optional, Set, Tuple
+import logging
 from itertools import groupby
 from operator import itemgetter
-import logging
+from typing import Dict, List, Optional, Set, Tuple
 
 from db_helper import DbHelper
 

@@ -2,8 +2,10 @@ import datetime
 import os
 import threading
 import time
+
+import requests
 from dotenv import load_dotenv
-from flask import Flask, jsonify
+from flask import Flask, jsonify, send_from_directory
 from flask_compress import Compress
 
 from services.bcl_service import BCLService
@@ -101,6 +103,26 @@ def start():
         return jsonify({"message": "Daily task started!"}), 202
     except RuntimeError:
         pass
+
+@app.route('/image/<sku>.jpg', methods=['GET'])
+def image(sku):
+    url = f'https://www.bcliquorstores.com/sites/default/files/imagecache/height400px/{sku}.jpg'
+    download_path = os.path.join('web/static/downloads', f'{sku}.jpg')
+
+    # Create downloads directory if it doesn't exist
+    os.makedirs('web/static/downloads', exist_ok=True)
+
+    # Check if image already exists locally
+    if not os.path.exists(download_path):
+        print(f'Downloading image for SKU: {sku}')
+        response = requests.get(url)
+        if response.status_code == 200:
+            with open(download_path, 'wb') as f:
+                f.write(response.content)
+    else:
+        print(f'Image for SKU: {sku} already exists locally.')
+
+    return send_from_directory('web/static/downloads', f'{sku}.jpg')
 
 
 @app.route('/ping', methods=['GET'])

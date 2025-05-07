@@ -283,7 +283,7 @@ const app = Vue.createApp({
          return sortedResult;
       },
       get_url: (sku) => `https://www.bcliquorstores.com/product/${sku}`,
-      get_image: (sku) => `https://www.bcliquorstores.com/sites/default/files/imagecache/height400px/${sku}.jpg`,
+      get_image: (sku) => `/image/${sku}.jpg`,
       get_alt_image: (category) => categoryImageMap[category],
       dynamicSort: (fields) => {
          return function (a, b) {

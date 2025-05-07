@@ -1,11 +1,11 @@
-import os
 import logging
+import os
 
 from dotenv import load_dotenv
-from utils.logging_config import setup_logging
 
 from services.bcl_service import BCLService
 from services.product_service import ProductService
+from utils.logging_config import setup_logging
 
 # Load .env file only if running locally
 load_dotenv()
