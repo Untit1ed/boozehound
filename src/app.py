@@ -106,23 +106,30 @@ def start():
 
 @app.route('/image/<sku>.jpg', methods=['GET'])
 def image(sku):
+    IMAGE_LOC = 'web/static/downloads'
+
     url = f'https://www.bcliquorstores.com/sites/default/files/imagecache/height400px/{sku}.jpg'
-    download_path = os.path.join('web/static/downloads', f'{sku}.jpg')
+    download_path = os.path.join(IMAGE_LOC, f'{sku}.jpg')
+
 
     # Create downloads directory if it doesn't exist
-    os.makedirs('web/static/downloads', exist_ok=True)
+    os.makedirs(IMAGE_LOC, exist_ok=True)
 
     # Check if image already exists locally
     if not os.path.exists(download_path):
         print(f'Downloading image for SKU: {sku}')
         response = requests.get(url)
         if response.status_code == 200:
+            print(f'Image for SKU: {sku} downloaded successfully.')
             with open(download_path, 'wb') as f:
                 f.write(response.content)
+        else:
+            print(f'Failed to download image for SKU: {sku}. Status code: {response.status_code}')
+            return jsonify({"error": "Image not found"}), 404
     else:
         print(f'Image for SKU: {sku} already exists locally.')
 
-    return send_from_directory('web/static/downloads', f'{sku}.jpg')
+    return send_from_directory(IMAGE_LOC, f'{sku}.jpg')
 
 
 @app.route('/ping', methods=['GET'])
