@@ -5,6 +5,11 @@ const ItemComponent = {
          required: true
       }
    },
+   data() {
+      return {
+         imageShown: {}
+      };
+   },
    template: '#item-component',
    methods: {
       handleImageError(event, category) {

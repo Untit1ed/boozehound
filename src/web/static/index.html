@@ -131,7 +131,9 @@
             :key="index">
             <div class="image-container">
                <div @click="select(product)">
-                  <img :src="product.alt_image" @mouseover="$event.target.src = product.image" @error="handleImageError($event, product.category)" />
+                  <img :src="imageShown[product.sku] ? product.image : product.alt_image"
+                     @mouseover="imageShown[product.sku] = true"
+                     @error="handleImageError($event, product.category)" />
                </div>
                <a href="#" :class="'fi fi-' + product.country.code.toLowerCase()" class="fis" @click="filter('country', product.country.code)"></a>
                <span class="upc">{{ product.actual_country }}</span>
