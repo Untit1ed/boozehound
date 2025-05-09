@@ -6,9 +6,7 @@ const ItemComponent = {
       }
    },
    data() {
-      return {
-         imageShown: {}
-      };
+      return {};
    },
    template: '#item-component',
    methods: {
