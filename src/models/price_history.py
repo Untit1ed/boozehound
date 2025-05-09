@@ -11,8 +11,8 @@ class PriceHistory(BaseModel):
     last_updated: datetime
     regular_price: Optional[Union[str, float]] = None
     current_price: Optional[Union[str, float]] = None
-    promotion_start_date: Optional[date] = None
-    promotion_end_date: Optional[date] = None
+    promotion_start_date: Optional[Union[date, datetime]] = None
+    promotion_end_date: Optional[Union[date, datetime]] = None
 
     def to_json_model(self) -> dict[str, Any]:
         data = self.model_dump(include={'promotion_end_date'})
