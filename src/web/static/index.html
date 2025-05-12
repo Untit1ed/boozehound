@@ -151,7 +151,7 @@
                   </p>
                   <p class="price" v-else>${{ product.price.price }}</p>
                   <p>
-                     <a :href="product.url" target="blank">{{ product.name }}</a>
+                     <a :href="product.url" target="blank" rel="noreferrer">{{ product.name }}</a>
                   </p>
                </hgroup>
                <p class="item-category">
@@ -188,7 +188,7 @@
                </div>
                <div>
                   <hgroup>
-                     <h3><a :href="product.url" target="blank">{{ product.name }}</a></h3>
+                     <h3><a :href="product.url" target="blank" rel="noreferrer">{{ product.name }}</a></h3>
                      <p>{{ product.tastingDescription }}</p>
                   </hgroup>
 
