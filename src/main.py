@@ -11,7 +11,7 @@ from utils.logging_config import setup_logging
 load_dotenv()
 
 BCL_URL = os.getenv('BCL_URL')
-BLS_URL = os.getenv('BSL_URL')
+BLS_URL = os.getenv('BLS_URL')
 
 
 DB_URL = os.getenv('DB_URL')
@@ -28,15 +28,20 @@ def main():
     bcl = None
     product_service = ProductService(DB_URL, True)
 
-    if FETCH:
-        bcl = BCLService()
-        bcl.download_json(BCL_URL, JSON_LOC)
+    try:
+        if FETCH:
+            bcl = BCLService()
+            bcl.download_json(BCL_URL, JSON_LOC)
 
-    product_service.load_products(JSON_LOC)
-    product_service.persist_products()
+        product_service.load_products(JSON_LOC)
+        product_service.persist_products()
 
-    if bcl:
-        bcl.write_products_to_csv(product_service.products, CSV_LOC)
+        if bcl:
+            bcl.write_products_to_csv(product_service.products, CSV_LOC)
+    finally:
+        if product_service:
+            logger.info("Closing ProductService from main.")
+            product_service.close()
 
 if __name__ == "__main__":
     main()

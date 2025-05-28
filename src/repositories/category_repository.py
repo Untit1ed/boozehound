@@ -1,8 +1,8 @@
 from typing import Dict, Optional
 
-from db_helper import DbHelper
+from src.db_helper import DbHelper # Corrected import
 
-from models.category import Category
+from src.models.category import Category # Corrected import
 
 
 class CategoryRepository:

@@ -3,7 +3,7 @@ from typing import Any, Optional, Union
 
 from pydantic import BaseModel
 
-from utils.type_utils import get_float
+from src.utils.type_utils import get_float # Corrected import
 
 
 class PriceHistory(BaseModel):
