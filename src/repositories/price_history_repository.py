@@ -188,7 +188,8 @@ FROM price_history WHERE sku = %s ORDER BY last_updated;"""
             INSERT INTO price_history (
                 last_updated, sku, regular_price, current_price,
                 promotion_start_date, promotion_end_date, source
-            ) VALUES(%s, %s, %s, %s, %s, %s, %s);
+            ) VALUES(%s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (last_updated, sku) DO NOTHING;
         """
         self.db_helper.bulk_insert_query(insert_query, params_list)
         print(f"Bulk inserted {len(params_list)} price histories")
