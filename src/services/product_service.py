@@ -78,3 +78,14 @@ class ProductService:
 
         self.product_repo.bulk_add_products(self.products)
         self.price_history_repo.bulk_add_price_histories(self.products)
+
+    def reload_products(self):
+        """Reload just the product repository and products from the database."""
+        self.product_repo = ProductRepository(
+            DbHelper(self.db_config),
+            self.category_repo,
+            self.country_repo,
+            self.price_history_repo
+        )
+        self.products = sorted(list(self.product_repo.products_map.values()),
+                             key=lambda p: p.combined_score(), reverse=True)

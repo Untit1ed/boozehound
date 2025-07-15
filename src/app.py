@@ -8,6 +8,8 @@ import requests
 from dotenv import load_dotenv
 from flask import Flask, jsonify, send_file, request
 from flask_compress import Compress
+from threading import Thread, Event
+from queue import Queue
 
 from services.bcl_service import BCLService
 from services.product_service import ProductService
@@ -29,6 +31,23 @@ app: Flask = Flask(__name__,
                    static_folder='web/static',
                    template_folder='web/templates')
 Compress(app)
+
+# Thread management
+reload_thread = None
+reload_queue = Queue()
+reload_event = Event()
+
+def process_reload_queue():
+    while True:
+        try:
+            reload_event.wait()
+            if not reload_queue.empty():
+                task = reload_queue.get()
+                task()
+                reload_queue.task_done()
+            reload_event.clear()
+        except Exception as e:
+            print(f"Error in reload queue: {str(e)}")
 
 
 @app.route('/favicon.ico')
@@ -90,21 +109,40 @@ def download_task():
     product_service.persist_products()
 
 
-@app.route('/reload', methods=['POST'])
+@app.route('/api/reload', methods=['POST'])
 def reload():
-    thread = threading.Thread(target=download_task)
-    thread.start()  # Start the background task
+    if reload_thread and reload_thread.is_alive():
+        return jsonify({"error": "Reload task already in progress"}), 409
+    
+    def reload_task():
+        try:
+            # Download and load products first
+            download_task()
+            # Then reload just the product repository and products
+            product_service.reload_products()
+            print("Reload completed successfully")
+        except Exception as e:
+            print(f"Error in reload task: {str(e)}")
+    
+    reload_queue.put(reload_task)
+    reload_event.set()
     return jsonify({"message": "Reload task started!"}), 202
 
 
 @app.route('/start', methods=['POST'])
 def start():
-    thread = threading.Thread(target=run_daily_task)
-    thread.start()
+    global reload_thread
+    if reload_thread and reload_thread.is_alive():
+        return jsonify({"error": "Daily task already running"}), 409
+    
     try:
+        reload_thread = Thread(target=process_reload_queue)
+        reload_thread.daemon = True
+        reload_thread.start()
         return jsonify({"message": "Daily task started!"}), 202
-    except RuntimeError:
-        pass
+    except RuntimeError as e:
+        print(f"Error starting daily task: {str(e)}")
+        return jsonify({"error": "Failed to start daily task", "message": str(e)}), 500
 
 @app.route('/image/<height>/<sku>.jpg', methods=['GET'])
 def image(height, sku):
