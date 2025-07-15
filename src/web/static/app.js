@@ -39,6 +39,15 @@ const app = Vue.createApp({
       this.getQueryParams();
    },
    methods: {
+      refreshData() {
+         localStorage.removeItem('ProductData');
+         this.loading = true;
+         this.products = [];
+         this.countries = [];
+         this.categories = [];
+         this.groupedProducts = [];
+         this.loadData();
+      },
       getQueryParams() {
          const params = new URLSearchParams(window.location.search);
          this.filters.category = params.get('category') || null;

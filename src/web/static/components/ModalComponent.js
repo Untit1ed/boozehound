@@ -39,9 +39,14 @@ const ModalComponent = {
       },
    },
    async mounted() {
-      document
-         .getElementById('modalDialog')
-         .addEventListener('click', this.close);
+      // Remove dialog click-to-close (bad UX)
+      // Add Escape key support
+      this._escListener = (e) => {
+         if (e.key === 'Escape') {
+            this.close();
+         }
+      };
+      document.addEventListener('keydown', this._escListener);
 
       document.body.classList.add('modal-is-opening');
 
@@ -137,6 +142,10 @@ const ModalComponent = {
       });
    },
    beforeUnmount() {
+      // Remove Escape key listener
+      if (this._escListener) {
+         document.removeEventListener('keydown', this._escListener);
+      }
       document
          .getElementById('modalDialog')
          .removeEventListener('click', this.close);

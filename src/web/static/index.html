@@ -30,6 +30,7 @@
       </hgroup>
    </header>
    <main id="app" class="container">
+      <button @click="refreshData" class="contrast" style="float:right; margin-bottom:1em;">🔄 Refresh Products</button>
       <filter-component v-if="!loading"
          :sort.sync="sorts.length"
          :country.sync="filters.country"
@@ -178,7 +179,7 @@
       <dialog id="modalDialog" class="modal" open>
          <article class="modal-content">
             <header>
-               <button @click="close()" aria-label="Close" rel="prev" data-target="modal-example"></button>
+               <button @click="close()" aria-label="Close" rel="prev" data-target="modal-example" class="modal-close-btn">&#10005;</button>
                <label>{{ product.name }}</label>
             </header>
             <div class="grid">
