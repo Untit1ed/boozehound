@@ -4,6 +4,7 @@ const FilterComponent = {
       'country': { type: String, required: false, default: "" },
       'category': { type: Number, required: false, default: null },
       'search': { type: String, required: false, default: "" },
+      'singleOnly': { type: Boolean, required: false, default: false },
       'sort': { type: Number, required: true },
       'countries': { type: Array, required: true },
       'categories': { type: Array, required: true },
@@ -34,7 +35,15 @@ const FilterComponent = {
             value = event.target.checked;
          }
 
-         this.updateFilters({ ...{ 'country': this.country, 'category': this.category, 'search': this.search}, [type]: value });
+         this.updateFilters({ 
+            ...{ 
+               'country': this.country, 
+               'category': this.category, 
+               'search': this.search,
+               'single_only': this.singleOnly 
+            }, 
+            [type]: value 
+         });
       },
    }
 };

@@ -14,6 +14,7 @@ const app = Vue.createApp({
             country: '',
             category: null,
             search: '',
+            single_only: false,
          },
          sorts: [...GlobalStore.sorts],
          loading: true,
@@ -53,6 +54,7 @@ const app = Vue.createApp({
          this.filters.category = params.get('category') || null;
          this.filters.country = params.get('country') || null;
          this.filters.search = params.get('search') || null;
+         this.filters.single_only = params.get('single_only') === 'true';
       },
       updateQueryParams() {
          const params = new URLSearchParams();
@@ -64,6 +66,9 @@ const app = Vue.createApp({
          }
          if(this.filters.search) {
             params.set('search', this.filters.search);
+         }
+         if(this.filters.single_only) {
+            params.set('single_only', this.filters.single_only);
          }
          const newUrl = `${window.location.pathname}?${params.toString()}`;
          window.history.replaceState({}, '', newUrl);
@@ -234,6 +239,9 @@ const app = Vue.createApp({
                   x.full_category.some((category) => category.description.toLowerCase().includes(query)) ||
                   x.upc.startsWith(query, 1)
                );
+            }
+            if (filters.single_only) {
+               result = result && (x.unit_size === 1);
             }
             if (filters.is_new) {
                result = result && x.is_new;
