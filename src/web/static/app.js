@@ -240,11 +240,11 @@ const app = Vue.createApp({
                   x.upc.startsWith(query, 1)
                );
             }
-            if (filters.single_only) {
-               result = result && (x.unit_size === 1);
-            }
             if (filters.is_new) {
                result = result && x.is_new;
+            }
+            if (filters.single_only) {
+               result = result && (x.unit_size === 1);
             }
 
             return result;

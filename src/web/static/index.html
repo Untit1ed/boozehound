@@ -91,7 +91,7 @@
                      New Items Only
                   </label>
                   <label>
-                     <input type="checkbox" v-model="singleOnly" @change="update_filters('single_only', $event)">
+                     <input role="switch" type="checkbox" @change="update_filters('single_only', $event)">
                      Single items only
                   </label>
                </fieldset>
