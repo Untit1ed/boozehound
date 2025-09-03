@@ -3,10 +3,10 @@ from typing import Any, List, Optional, Type, Union
 
 from pydantic import BaseModel, Field, model_validator
 
-from models.category import Category
-from models.country import Country
-from models.price_history import PriceHistory
-from utils.type_utils import get_float
+from src.models.category import Category # Corrected import
+from src.models.country import Country # Corrected import
+from src.models.price_history import PriceHistory # Corrected import
+from src.utils.type_utils import get_float # Corrected import
 
 BCL_PRODUCT_URL = "https://www.bcliquorstores.com/product/"
 

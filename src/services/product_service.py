@@ -1,40 +1,33 @@
 
 import json
+import logging
+import os
 from typing import List
 
-from db_helper import DbHelper
+from src.db_helper import DbHelper # Corrected import
 
-from models.product import Product
-from repositories.category_repository import CategoryRepository
-from repositories.country_repository import CountryRepository
-from repositories.price_history_repository import PriceHistoryRepository
-from repositories.product_repository import ProductRepository
+from src.models.product import Product # Corrected import
+from src.repositories.category_repository import CategoryRepository # Corrected import
+from src.repositories.country_repository import CountryRepository # Corrected import
+from src.repositories.price_history_repository import PriceHistoryRepository # Corrected import
+from src.repositories.product_repository import ProductRepository # Corrected import
 
 
 class ProductService:
-    def __init__(self, db_url: str, load_repos: bool = False) -> None:
-        if db_url == 'localhost':
-            self.db_config = {
-                'host': db_url,
-                'user': 'cron_job',
-                'password': 'cron_job123$',
-                'database': 'bcl',
-            }
-        elif db_url == 'untit1ed.mysql.pythonanywhere-services.com':
-            self.db_config = {
-                'host': db_url,
-                'user': 'untit1ed',
-                'password': 'cron_job123$',
-                'database': 'bcl',
-            }
-        else:
-            self.db_config = {
-                'host': db_url,
-                'user': 'cron_job',
-                'password': 'Jz2cKk1tRiEj',
-                'dbname': 'bcl',
-            }
+    logger = logging.getLogger(__name__)
 
+    def __init__(self, db_url: str, load_repos: bool = False) -> None:
+        db_host = os.getenv('DB_HOST', db_url)
+        db_user = os.getenv('DB_USER', 'cron_job')
+        db_password = os.getenv('DB_PASSWORD', 'cron_job123$')
+        db_name = os.getenv('DB_NAME', 'bcl')
+
+        self.db_config = {
+            'host': db_host,
+            'user': db_user,
+            'password': db_password,
+            'database': db_name,
+        }
 
         self.products: List[Product] = []
 
@@ -42,30 +35,49 @@ class ProductService:
             self.load_repos()
 
     def load_repos(self) -> None:
-        db_helper = DbHelper(self.db_config)
-        self.country_repo = CountryRepository(db_helper)
-        self.category_repo = CategoryRepository(db_helper)
-        self.price_history_repo = PriceHistoryRepository(db_helper)
+        # DbHelper is now instantiated and stored as an instance variable
+        self.db_helper = DbHelper(self.db_config) 
+        self.country_repo = CountryRepository(self.db_helper)
+        self.category_repo = CategoryRepository(self.db_helper)
+        self.price_history_repo = PriceHistoryRepository(self.db_helper)
 
-        self.product_repo = ProductRepository(db_helper, self.category_repo, self.country_repo, self.price_history_repo)
+        self.product_repo = ProductRepository(self.db_helper, self.category_repo, self.country_repo, self.price_history_repo)
 
         self.products = sorted(list(self.product_repo.products_map.values()),
                                key=lambda p: p.combined_score(), reverse=True)
 
+    def close(self) -> None:
+        """
+        Closes the database connection helper if it exists.
+        """
+        if hasattr(self, 'db_helper') and self.db_helper:
+            self.logger.info("Closing ProductService's DbHelper connection.")
+            self.db_helper.close()
+        else:
+            self.logger.debug("ProductService's DbHelper not found or already None.")
+
     def load_products(self, filename: str) -> None:
-        with open(filename, 'r', encoding="utf8") as file:
-            json_data = json.load(file)
+        self.products = []  # Initialize products to empty list
+        try:
+            with open(filename, 'r', encoding="utf8") as file:
+                json_data = json.load(file)
 
-        hits = json_data.get("hits", {}).get("hits", [])
+            hits = json_data.get("hits", {}).get("hits", [])
+            products = [Product(**hit.get("_source", {})) for hit in hits]
+            # Sort products by the custom metric
+            self.products = sorted(products, key=lambda p: p.combined_score(), reverse=True)
 
-        products = [Product(**hit.get("_source", {})) for hit in hits]
-
-        # Sort products by the custom metric
-        self.products = sorted(products, key=lambda p: p.combined_score(), reverse=True)
+        except FileNotFoundError:
+            self.logger.error(f"Error loading products: File not found - {filename}")
+            # self.products is already []
+        except json.JSONDecodeError:
+            self.logger.error(f"Error loading products: Could not decode JSON from file - {filename}")
+            # self.products is already []
 
     def persist_products(self):
-        for country in {product.country for product in self.products if product.country is not None}:
-            self.country_repo.get_or_add_country(country)
+        unique_countries = list({product.country for product in self.products if product.country is not None})
+        if unique_countries:
+            self.country_repo.bulk_add_countries(unique_countries)
 
         categories = {(product.category, product.subCategory, product.subSubCategory) for product in self.products}
         for category, subCategory, subSubCategory in categories:

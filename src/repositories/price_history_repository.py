@@ -3,11 +3,12 @@ from itertools import groupby
 from operator import itemgetter
 from typing import Dict, List, Optional, Set, Tuple
 
-from db_helper import DbHelper
+from src.db_helper import DbHelper # Corrected import
 
-from models.price_history import PriceHistory
-from models.product import Product
+from src.models.price_history import PriceHistory # Corrected import
+from src.models.product import Product # Corrected import
 
+logger = logging.getLogger(__name__)
 
 class PriceHistoryRepository:
     def __init__(
@@ -34,12 +35,12 @@ class PriceHistoryRepository:
     last_updated, sku, regular_price, current_price, promotion_start_date, promotion_end_date
 FROM price_history WHERE sku = %s ORDER BY last_updated;"""
 
-        print('Loading price histories from DB...', end='\r')
+        logger.debug(f'Loading price histories from DB for sku {sku}...')
         price_histories = self.db_helper.execute_query(query, (sku,))
         if not price_histories:
             return []
 
-        print(f'\x1b[2K\r{len(price_histories) if price_histories else 0} price histories loaded for sku {sku}.')
+        logger.info(f'{len(price_histories) if price_histories else 0} price histories loaded for sku {sku}.')
 
         price_histories_list = []
 
@@ -145,7 +146,7 @@ FROM price_history WHERE sku = %s ORDER BY last_updated;"""
         # Update the in-memory dictionary
         self.history_map.setdefault(history.sku, []).append(history)
 
-        print(f"Price history inserted for product {product.name}")
+        logger.info(f"Price history inserted for product {product.name} (SKU: {product.sku})")
         return history.sku
 
     def bulk_add_price_histories(self, products: List[Product]) -> None:
@@ -180,9 +181,10 @@ FROM price_history WHERE sku = %s ORDER BY last_updated;"""
             self.history_map.setdefault(history.sku, []).append(history)
 
         if not params_list:
-            return None
+            logger.debug("No new price histories to bulk insert.")
+            return None # Keep existing behavior of returning None
 
-        print(f'Inserting {len(params_list)} price histories...')
+        logger.info(f'Inserting {len(params_list)} price histories...')
 
         insert_query = """
             INSERT INTO price_history (
@@ -192,4 +194,4 @@ FROM price_history WHERE sku = %s ORDER BY last_updated;"""
             ON CONFLICT (last_updated, sku) DO NOTHING;
         """
         self.db_helper.bulk_insert_query(insert_query, params_list)
-        print(f"Bulk inserted {len(params_list)} price histories")
+        logger.info(f"Bulk inserted {len(params_list)} price histories")

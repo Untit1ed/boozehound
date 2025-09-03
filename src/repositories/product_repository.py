@@ -1,14 +1,15 @@
 import logging
 from typing import Dict, List, Optional
 
-from db_helper import DbHelper
+from src.db_helper import DbHelper # Corrected import
 
-from models.price_history import PriceHistory
-from models.product import Product
-from repositories.category_repository import CategoryRepository
-from repositories.country_repository import CountryRepository
-from repositories.price_history_repository import PriceHistoryRepository
+from src.models.price_history import PriceHistory # Corrected import
+from src.models.product import Product # Corrected import
+from src.repositories.category_repository import CategoryRepository # Corrected import
+from src.repositories.country_repository import CountryRepository # Corrected import
+from src.repositories.price_history_repository import PriceHistoryRepository # Corrected import
 
+logger = logging.getLogger(__name__)
 
 class ProductRepository:
     def __init__(
@@ -52,12 +53,13 @@ JOIN (
 WHERE h.last_update >= CURRENT_DATE - 30
 """
 
-        print('Loading products from DB...', end='\r')
+        logger.debug('Loading products from DB...')
         products = self.db_helper.execute_query(query)
         if not products:
+            logger.info("No products found in DB during load_products.")
             return {}
 
-        print(f'\x1b[2K\r{len(products) if products else 0} products loaded.')
+        logger.info(f'{len(products) if products else 0} product rows initially loaded from DB.')
         product_dict = {}
 
         for row in products:
@@ -121,7 +123,7 @@ WHERE h.last_update >= CURRENT_DATE - 30
                 logging.error(f"Error processing product row: {row}. Error: {str(e)}")
                 continue
 
-        print(f"Successfully loaded {len(product_dict)} valid products")
+        logger.info(f"Successfully loaded and processed {len(product_dict)} valid products into products_map.")
         return product_dict
 
     def get_or_add_product(
@@ -138,10 +140,11 @@ WHERE h.last_update >= CURRENT_DATE - 30
 
         # Check if the product is already in memory
         if product.sku in self.products_map:
-            return product.sku
+            return product.sku # Assuming SKU is used as ID here, or this should return an actual ID if available
 
-        # Insert category into the database
-        if self.db_helper.is_mysql:
+        # Insert product into the database
+        # Adjusted to use self.db_helper.db_type
+        if self.db_helper.db_type == 'mysql':
             insert_query = """
                 INSERT INTO products (
                     sku, name, category_id, country_code, description, volume, alcohol, upc, unit_size,
@@ -188,9 +191,9 @@ WHERE h.last_update >= CURRENT_DATE - 30
         # Update the in-memory dictionary
         self.products_map[product.sku] = product
 
-        print(f"{(product.name, product.sku, product.upc)} product was inserted.")
+        logger.info(f"Product {(product.name, product.sku, product.upc)} was inserted.")
 
-        return product.sku
+        return product.sku # Assuming SKU is used as ID here
 
     def bulk_add_products(self, products: List[Product]) -> None:
         """
@@ -198,42 +201,116 @@ WHERE h.last_update >= CURRENT_DATE - 30
 
         :param products: List of products to insert or update
         """
+        if not products:
+            logger.debug("No products provided for bulk add.")
+            return None
+
+        # Phase 1: Collect Unique Entities & Pre-process
+        logger.debug("Starting pre-processing for bulk_add_products.")
+
+        # Pre-process countries
+        unique_countries = {prod.country for prod in products if prod.country}
+        if unique_countries:
+            logger.info(f"Found {len(unique_countries)} unique countries to pre-process.")
+            self.country_repository.bulk_add_countries(list(unique_countries))
+        
+        # Pre-process category hierarchies
+        unique_category_hierarchies = set()
+        for prod in products:
+            # Add hierarchy tuple: (main_cat, sub_cat, class_cat)
+            # Ensure None is used if a category level is missing
+            main_cat = prod.category
+            sub_cat = prod.subCategory if main_cat else None # sub only relevant if main exists
+            class_cat = prod.subSubCategory if main_cat and sub_cat else None # class only if main & sub exist
+            
+            if main_cat: # Only process if there's at least a main category
+                 unique_category_hierarchies.add((main_cat, sub_cat, class_cat))
+
+        if unique_category_hierarchies:
+            logger.info(f"Found {len(unique_category_hierarchies)} unique category hierarchies to pre-process.")
+            for main_cat, sub_cat, class_cat in unique_category_hierarchies:
+                # The get_or_add_category expects the most specific category first.
+                # All parameters must be Category objects or None.
+                if class_cat: # If class_cat (most specific) exists
+                    self.category_repository.get_or_add_category(
+                        category=class_cat, 
+                        parent_category=sub_cat,       # sub_cat must exist if class_cat exists as per Product model logic
+                        grandparent_category=main_cat  # main_cat must exist if class_cat exists
+                    )
+                elif sub_cat: # If no class_cat, but sub_cat exists
+                    self.category_repository.get_or_add_category(
+                        category=sub_cat, 
+                        parent_category=main_cat,      # main_cat must exist if sub_cat exists
+                        grandparent_category=None
+                    )
+                elif main_cat: # If only main_cat exists
+                    self.category_repository.get_or_add_category(
+                        category=main_cat, 
+                        parent_category=None, 
+                        grandparent_category=None
+                    )
+        
+        logger.debug("Finished pre-processing.")
+
+        # Phase 2: Product Parameter Preparation Loop
         params_list = []
-        processed_skus = set()
+        processed_skus = set() 
 
         for product in products:
             if not product.sku or not product.name:
                 logging.warning(f"Skipping product with missing required fields: SKU={product.sku}, name={product.name}")
                 continue
 
-            # Skip if product already exists in memory
-            if product.sku in processed_skus or product.sku in self.products_map:
+            # Skip if product SKU has already been processed in this batch 
+            # (self.products_map check for existing products in DB is implicitly handled by ON CONFLICT/DUPLICATE KEY)
+            if product.sku in processed_skus:
                 continue
+            
+            # These calls should now primarily hit the cache due to pre-processing
+            country_code_val = self.country_repository.get_or_add_country(product.country) if product.country else None
+            
+            main_cat_id = None
+            sub_cat_id = None
+            class_cat_id = None
 
+            if product.category:
+                main_cat_id = self.category_repository.get_or_add_category(product.category)
+                if product.subCategory:
+                    sub_cat_id = self.category_repository.get_or_add_category(product.subCategory, parent_category=product.category)
+                    if product.subSubCategory:
+                        class_cat_id = self.category_repository.get_or_add_category(product.subSubCategory, parent_category=product.subCategory, grandparent_category=product.category)
+            
             params_list.append((
                 product.sku,
                 product.name,
-                self.category_repository.get_or_add_category(product.category),
-                self.country_repository.get_or_add_country(product.country),
+                main_cat_id,
+                country_code_val,
                 product.tastingDescription,
                 product.volume,
                 product.alcoholPercentage,
                 product.upc,
                 product.unitSize,
-                self.category_repository.get_or_add_category(product.subCategory),
-                self.category_repository.get_or_add_category(product.subSubCategory)
+                sub_cat_id,
+                class_cat_id
             ))
             processed_skus.add(product.sku)
 
-            # Update in-memory map
-            self.products_map[product.sku] = product
+            # Update in-memory map for newly processed products in this batch
+            # Note: self.products_map should ideally be updated after successful DB operation,
+            # or if the product was skipped due to already being in products_map (meaning it's from DB load).
+            # For this refactor, we'll keep the existing logic of updating it here for products processed in this batch.
+            if product.sku not in self.products_map:
+                 self.products_map[product.sku] = product
+
 
         if not params_list:
+            logger.debug("No new products to bulk insert after filtering processed SKUs.")
             return None
 
-        print(f'Inserting {len(params_list)} products...')
+        logger.info(f'Bulk inserting/updating {len(params_list)} products...')
 
-        if self.db_helper.is_mysql:
+        # Adjusted to use self.db_helper.db_type
+        if self.db_helper.db_type == 'mysql':
             insert_query = """
                 INSERT INTO products (
                     sku, name, category_id, country_code, description,
@@ -267,4 +344,4 @@ WHERE h.last_update >= CURRENT_DATE - 30
                     date_updated = NOW()
             """
         self.db_helper.bulk_insert_query(insert_query, params_list)
-        print(f"Bulk inserted/updated {len(params_list)} products")
+        logger.info(f"Bulk inserted/updated {len(params_list)} products")
