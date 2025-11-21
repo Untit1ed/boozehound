@@ -13,17 +13,11 @@ from repositories.product_repository import ProductRepository
 
 class ProductService:
     def __init__(self, db_url: str, user: str, password: str, db_name: str, load_repos: bool = False) -> None:
+        print(f'Initializing ProductService with DB URL: {db_url}, User: {user}, DB Name: {db_name}')
         if db_url == 'localhost':
             self.db_config = {
                 'host': db_url,
                 'user': 'cron_job',
-                'password': 'cron_job123$',
-                'database': 'bcl',
-            }
-        elif db_url == 'untit1ed.mysql.pythonanywhere-services.com':
-            self.db_config = {
-                'host': db_url,
-                'user': 'untit1ed',
                 'password': 'cron_job123$',
                 'database': 'bcl',
             }
