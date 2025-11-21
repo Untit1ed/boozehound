@@ -12,7 +12,7 @@ from repositories.product_repository import ProductRepository
 
 
 class ProductService:
-    def __init__(self, db_url: str, load_repos: bool = False) -> None:
+    def __init__(self, db_url: str, user: str, password: str, db_name: str, load_repos: bool = False) -> None:
         if db_url == 'localhost':
             self.db_config = {
                 'host': db_url,
@@ -30,9 +30,9 @@ class ProductService:
         else:
             self.db_config = {
                 'host': db_url,
-                'user': 'cron_job',
-                'password': 'Jz2cKk1tRiEj',
-                'dbname': 'bcl',
+                'user': user,
+                'password': password,
+                'dbname': db_name,
             }
 
 

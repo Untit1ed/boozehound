@@ -15,6 +15,9 @@ BLS_URL = os.getenv('BSL_URL')
 
 
 DB_URL = os.getenv('DB_URL')
+DB_USER = os.getenv('DB_USER')
+DB_PASSWORD = os.getenv('DB_PASSWORD')
+DB_DBNAME = os.getenv('DB_DBNAME')
 JSON_LOC = "data/products.json"
 CSV_LOC = "data/products.csv"
 FETCH = True #if len(sys.argv) == 2 and sys.argv[1] == 'fetch' else False
@@ -26,7 +29,7 @@ def main():
     logger.info("Starting Boozehound application...")
 
     bcl = None
-    product_service = ProductService(DB_URL, True)
+    product_service = ProductService(DB_URL, DB_USER, DB_PASSWORD, DB_DBNAME, False)
 
     if FETCH:
         bcl = BCLService()

@@ -17,13 +17,16 @@ load_dotenv()
 PORT = os.environ.get('PORT', 8000)
 
 DB_URL = os.environ.get('DB_URL')
+DB_USER = os.getenv('DB_USER')
+DB_PASSWORD = os.getenv('DB_PASSWORD')
+DB_DBNAME = os.getenv('DB_DBNAME')
 BCL_URL = os.getenv('BCL_URL')
 JSON_LOC = "data/products.json"
 IMAGE_LOC = '/tmp/'
 
 print(f'WEB STARTING {__name__}')
 print(f'{DB_URL}')
-product_service: ProductService = ProductService(DB_URL, False)
+product_service: ProductService = ProductService(DB_URL, DB_USER, DB_PASSWORD, DB_DBNAME, False)
 
 app: Flask = Flask(__name__,
                    static_folder='web/static',
