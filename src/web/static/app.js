@@ -252,7 +252,7 @@ const app = Vue.createApp({
                result = result && (x.unit_size === 1);
             }
             if (filters.sale_only) {
-               result = result && x.sale_price < x.price;
+               result = result && x.price && x.price.sale_price < x.price.price;
             }
 
             return result;
