@@ -83,16 +83,16 @@
 
                <fieldset>
                   <label>
-                     <input role="switch" type="checkbox" disabled checked/>
-                     Booze Score
-                  </label>
-                  <label>
                      <input role="switch" type="checkbox" @change="update_filters('is_new', $event)"/>
                      New Items Only
                   </label>
                   <label>
                      <input role="switch" type="checkbox" @change="update_filters('single_only', $event)">
-                     Single items only
+                     Single Items Only
+                  </label>
+                  <label>
+                     <input role="switch" type="checkbox" @change="update_filters('sale_only', $event)">
+                     Sale Items Only
                   </label>
                </fieldset>
             </div>

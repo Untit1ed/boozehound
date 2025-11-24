@@ -34,6 +34,8 @@ const FilterComponent = {
             value = event.target.checked;
          } else if (type == 'single_only') {
             value = event.target.checked;
+         } else if (type == 'sale_only') {
+            value = event.target.checked;
          }
 
          this.updateFilters({ 

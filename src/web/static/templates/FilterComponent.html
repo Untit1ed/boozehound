@@ -15,6 +15,10 @@
             </select>
             <label>Search</label>
             <input type="text" v-model="search" @input="update_filters('search', $event)" placeholder="Search...">
+            <label>
+               <input type="checkbox" v-model="singleOnly" @change="update_filters('single_only', $event)">
+               Single items only
+            </label>
             <button @click="reset">Reset</button>
          </article>
       </li>
