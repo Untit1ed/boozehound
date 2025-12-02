@@ -140,6 +140,7 @@
                <div @click="select(product)">
                   <img :src="product.image"
                      @error="handleImageError($event, product.category)"
+                     height="100"
                      loading="lazy"/>
                </div>
                <a href="#" :class="'fi fi-' + product.country.code.toLowerCase()" class="fis" @click="filter('country', product.country.code)"></a>
